@@ -28,13 +28,15 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 18px 20px;
+      padding: 14px 20px;
       position: sticky;
       top: 0;
       background: #1a1a2e;
       z-index: 10;
     }
+    .header-left { display: flex; flex-direction: column; gap: 2px; }
     header h1 { font-size: 20px; font-weight: 700; }
+    .build-info { font-size: 10px; color: #3a4a6a; letter-spacing: .3px; }
 
     /* Barra de seleção (substitui o header quando há itens selecionados) */
     #selectionBar {
@@ -225,7 +227,10 @@
 
 <!-- Header normal -->
 <header id="mainHeader">
-  <h1>Áudio → Texto</h1>
+  <div class="header-left">
+    <h1>Áudio → Texto</h1>
+    <span class="build-info">v3 · 02/05/2026 às 21:30</span>
+  </div>
 </header>
 
 <!-- Barra de seleção -->
@@ -330,10 +335,10 @@
   let editingId   = null;
 
   /* ─── Histórico persistido ─── */
-  let history = JSON.parse(localStorage.getItem('h_items') || '[]');
+  let transcripts = JSON.parse(localStorage.getItem('h_items') || '[]');
 
   function saveHistory() {
-    localStorage.setItem('h_items', JSON.stringify(history));
+    localStorage.setItem('h_items', JSON.stringify(transcripts));
   }
 
   /* ─── Gravação ─── */
@@ -356,11 +361,11 @@
   }
 
   function addToHistory(text) {
-    const id   = Date.now();
-    const date = new Date();
-    const time = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const id      = Date.now();
+    const date    = new Date();
+    const time    = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-    history.unshift({ id, text, time, date: dateStr });
+    transcripts.unshift({ id, text, time, date: dateStr });
     saveHistory();
     renderHistory();
   }
@@ -398,8 +403,8 @@
 
   /* ─── Renderizar histórico ─── */
   function renderHistory() {
-    historyCard.style.display = history.length ? '' : 'none';
-    historyList.innerHTML = history.map(item => {
+    historyCard.style.display = transcripts.length ? '' : 'none';
+    historyList.innerHTML = transcripts.map(item => {
       const checked = selectedIds.has(item.id);
       return `
         <div class="history-item${checked ? ' selected' : ''}" data-id="${item.id}">
@@ -443,7 +448,7 @@
 
     // Botão copiar
     const copyBtnH = e.target.closest('.h-act-btn.copy');
-    if (copyBtnH) { const it = history.find(h => h.id === +copyBtnH.dataset.id); if (it) copyText(it.text); return; }
+    if (copyBtnH) { const it = transcripts.find(h => h.id === +copyBtnH.dataset.id); if (it) copyText(it.text); return; }
 
     const item = e.target.closest('.history-item');
     if (!item) return;
@@ -453,7 +458,7 @@
       toggleSelect(id);
     } else {
       // Toque simples fora do modo seleção → mostra no box principal
-      const it = history.find(h => h.id === id);
+      const it = transcripts.find(h => h.id === id);
       if (it) { showTranscriptFromHistory(it.text); showToast('Texto carregado'); }
     }
   });
@@ -495,12 +500,12 @@
   function updateSelectionBar() {
     const n = selectedIds.size;
     selCount.textContent = n === 1 ? '1 selecionado' : `${n} selecionados`;
-    const allSelected = history.length > 0 && selectedIds.size === history.length;
+    const allSelected = transcripts.length > 0 && selectedIds.size === transcripts.length;
     selAllBtn.textContent = allSelected ? 'Desmarcar todos' : 'Selecionar todos';
   }
 
   selAllBtn.addEventListener('click', () => {
-    if (selectedIds.size === history.length) {
+    if (selectedIds.size === transcripts.length) {
       selectedIds.clear();
       exitSelecting();
     } else {
