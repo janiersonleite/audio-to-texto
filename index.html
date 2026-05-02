@@ -23,209 +23,239 @@
       flex-direction: column;
     }
 
+    /* ── Header ── */
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 18px 20px;
+      position: sticky;
+      top: 0;
+      background: #1a1a2e;
+      z-index: 10;
     }
     header h1 { font-size: 20px; font-weight: 700; }
+
+    /* Barra de seleção (substitui o header quando há itens selecionados) */
+    #selectionBar {
+      display: none;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 20px;
+      position: sticky;
+      top: 0;
+      background: #16213e;
+      z-index: 10;
+      border-bottom: 1px solid #0f3460;
+    }
+    #selectionBar.visible { display: flex; }
+    #selCount { font-size: 16px; font-weight: 600; color: #e0e6f0; }
+    .sel-actions { display: flex; gap: 8px; align-items: center; }
+    .sel-btn {
+      border: none; cursor: pointer; border-radius: 8px;
+      padding: 8px 14px; font-size: 13px; font-weight: 600;
+    }
+    #selAllBtn  { background: #0f3460; color: #a0a8c0; }
+    #delSelBtn  { background: #ff4757; color: #fff; }
+    #cancelSelBtn { background: none; color: #a0a8c0; font-size: 22px; padding: 4px 8px; }
 
     main { flex: 1; padding: 0 20px 40px; overflow-y: auto; }
 
     /* ── Botão de gravação ── */
     .record-section {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin: 36px 0;
-      position: relative;
+      display: flex; flex-direction: column; align-items: center;
+      margin: 36px 0; position: relative;
     }
-
     .pulse-ring {
-      position: absolute;
-      width: 140px;
-      height: 140px;
-      border-radius: 50%;
-      background: #ff4757;
-      opacity: 0;
-      transform: scale(1);
-      transition: opacity .2s;
+      position: absolute; width: 140px; height: 140px; border-radius: 50%;
+      background: #ff4757; opacity: 0; transform: scale(1); transition: opacity .2s;
     }
-    .pulse-ring.active {
-      opacity: .3;
-      animation: pulse 1.2s ease-in-out infinite;
-    }
+    .pulse-ring.active { opacity: .3; animation: pulse 1.2s ease-in-out infinite; }
     @keyframes pulse {
       0%   { transform: scale(1); }
       50%  { transform: scale(1.35); }
       100% { transform: scale(1); }
     }
-
     #recordBtn {
-      position: relative;
-      width: 110px;
-      height: 110px;
-      border-radius: 50%;
-      border: none;
-      background: #6c63ff;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 20px rgba(108, 99, 255, .55);
-      transition: background .2s, box-shadow .2s;
-      z-index: 1;
+      position: relative; width: 110px; height: 110px; border-radius: 50%;
+      border: none; background: #6c63ff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(108,99,255,.55);
+      transition: background .2s, box-shadow .2s; z-index: 1;
     }
-    #recordBtn.recording {
-      background: #ff4757;
-      box-shadow: 0 4px 20px rgba(255, 71, 87, .55);
-    }
+    #recordBtn.recording { background: #ff4757; box-shadow: 0 4px 20px rgba(255,71,87,.55); }
     #recordBtn svg { width: 48px; height: 48px; fill: #fff; }
-
-    #statusLabel {
-      margin-top: 20px;
-      font-size: 15px;
-      color: #a0a8c0;
-      letter-spacing: .3px;
-    }
-
-    /* Spinner */
+    #statusLabel { margin-top: 20px; font-size: 15px; color: #a0a8c0; letter-spacing: .3px; }
     .spinner {
-      display: none;
-      width: 32px; height: 32px;
-      border: 3px solid #2a2a4a;
-      border-top-color: #6c63ff;
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-      margin-top: 12px;
+      display: none; width: 32px; height: 32px;
+      border: 3px solid #2a2a4a; border-top-color: #6c63ff;
+      border-radius: 50%; animation: spin .7s linear infinite; margin-top: 12px;
     }
     .spinner.visible { display: block; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── Card ── */
-    .card {
-      background: #16213e;
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 16px;
-    }
+    .card { background: #16213e; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
     .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
     }
     .card-title {
-      font-size: 11px;
-      font-weight: 700;
-      color: #a0a8c0;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
+      font-size: 11px; font-weight: 700; color: #a0a8c0;
+      text-transform: uppercase; letter-spacing: 1.2px;
     }
-
     #transcriptBox {
-      font-size: 16px;
-      line-height: 1.6;
-      color: #e0e6f0;
-      min-height: 80px;
-      white-space: pre-wrap;
-      word-break: break-word;
+      font-size: 16px; line-height: 1.6; color: #e0e6f0;
+      min-height: 80px; white-space: pre-wrap; word-break: break-word;
     }
     #transcriptBox.empty { color: #3a4060; font-style: italic; }
-
-    .icon-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 4px;
-      opacity: .8;
-    }
+    .icon-btn { background: none; border: none; cursor: pointer; padding: 4px; opacity: .8; }
     .icon-btn:active { opacity: .5; }
     .icon-btn svg { width: 20px; height: 20px; fill: #6c63ff; }
-
     .clear-btn {
-      margin-top: 12px;
-      float: right;
-      background: none;
-      border: none;
-      color: #ff4757;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
+      margin-top: 12px; float: right; background: none; border: none;
+      color: #ff4757; font-size: 13px; font-weight: 600; cursor: pointer;
     }
 
     /* ── Histórico ── */
     #historyCard { display: none; }
     .history-item {
-      border-top: 1px solid #0f3460;
-      padding: 10px 0;
-      cursor: pointer;
+      display: flex; align-items: flex-start; gap: 12px;
+      border-top: 1px solid #0f3460; padding: 12px 0;
+      cursor: pointer; transition: background .15s; border-radius: 8px;
+      padding-left: 4px; padding-right: 4px;
     }
     .history-item:first-child { border-top: none; }
-    .history-text { font-size: 14px; line-height: 1.45; color: #e0e6f0; }
-    .history-time { font-size: 12px; color: #a0a8c0; margin-top: 3px; }
+    .history-item:active { background: #0f1a2e; }
+
+    /* Checkbox */
+    .h-check {
+      width: 22px; height: 22px; min-width: 22px; border-radius: 50%;
+      border: 2px solid #2a3a5e; background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 2px; transition: border-color .15s, background .15s;
+    }
+    .h-check.checked { border-color: #6c63ff; background: #6c63ff; }
+    .h-check.checked::after {
+      content: ''; display: block;
+      width: 6px; height: 10px;
+      border-right: 2px solid #fff; border-bottom: 2px solid #fff;
+      transform: rotate(45deg) translate(-1px, -1px);
+    }
+    /* Checkbox oculto fora do modo seleção */
+    body:not(.selecting) .h-check { display: none; }
+
+    .h-content { flex: 1; min-width: 0; }
+    .history-text {
+      font-size: 14px; line-height: 1.45; color: #e0e6f0;
+      overflow: hidden; text-overflow: ellipsis;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    }
+    .history-meta {
+      display: flex; gap: 10px; align-items: center; margin-top: 4px;
+    }
+    .history-time { font-size: 12px; color: #a0a8c0; }
+
+    /* Botões de ação por item (editar / copiar) */
+    .h-actions { display: flex; gap: 4px; }
+    body.selecting .h-actions { display: none; }
+    .h-act-btn {
+      background: none; border: none; cursor: pointer;
+      padding: 6px; border-radius: 8px; opacity: .7;
+      transition: opacity .15s, background .15s;
+    }
+    .h-act-btn:active { opacity: 1; background: #0f3460; }
+    .h-act-btn svg { width: 16px; height: 16px; display: block; }
+    .h-act-btn.edit svg { fill: #6c63ff; }
+    .h-act-btn.copy svg { fill: #a0a8c0; }
+
+    /* Item selecionado */
+    .history-item.selected { background: #0d1e38; border-radius: 8px; }
+
+    /* ── Modal de edição ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.75); z-index: 100;
+      align-items: flex-end; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: #16213e; border-radius: 24px 24px 0 0;
+      padding: 24px; width: 100%; max-height: 85vh;
+      display: flex; flex-direction: column; gap: 14px;
+      animation: slideUp .25s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-title { font-size: 17px; font-weight: 700; color: #e0e6f0; }
+    .modal-meta  { font-size: 12px; color: #a0a8c0; margin-top: -8px; }
+    .modal-textarea {
+      flex: 1; min-height: 140px; max-height: 45vh;
+      background: #0f3460; border: 1px solid #1a4a7a; border-radius: 12px;
+      padding: 14px; color: #e0e6f0; font-size: 15px; line-height: 1.6;
+      resize: none; font-family: inherit;
+    }
+    .modal-textarea:focus { outline: none; border-color: #6c63ff; }
+    .modal-btns { display: flex; gap: 12px; }
+    .modal-btn {
+      flex: 1; border: none; border-radius: 10px;
+      padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer;
+    }
+    .modal-btn.primary { background: #6c63ff; color: #fff; }
+    .modal-btn.secondary { background: #0f3460; color: #a0a8c0; }
 
     /* Toast */
     #toast {
-      position: fixed;
-      bottom: 30px;
-      left: 50%;
+      position: fixed; bottom: 30px; left: 50%;
       transform: translateX(-50%) translateY(20px);
-      background: #6c63ff;
-      color: #fff;
-      padding: 10px 22px;
-      border-radius: 30px;
-      font-size: 14px;
-      font-weight: 600;
-      opacity: 0;
-      transition: opacity .25s, transform .25s;
-      pointer-events: none;
-      white-space: nowrap;
+      background: #6c63ff; color: #fff;
+      padding: 10px 22px; border-radius: 30px;
+      font-size: 14px; font-weight: 600;
+      opacity: 0; transition: opacity .25s, transform .25s;
+      pointer-events: none; white-space: nowrap; z-index: 200;
     }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* Aviso de compatibilidade */
     #noSupport {
-      display: none;
-      background: #2a1a1a;
-      border: 1px solid #ff4757;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-      font-size: 14px;
-      line-height: 1.5;
-      color: #ffb3b3;
+      display: none; background: #2a1a1a; border: 1px solid #ff4757;
+      border-radius: 12px; padding: 16px; margin-bottom: 16px;
+      font-size: 14px; line-height: 1.5; color: #ffb3b3;
     }
   </style>
 </head>
 <body>
 
-<header>
+<!-- Header normal -->
+<header id="mainHeader">
   <h1>Áudio → Texto</h1>
 </header>
 
-<main>
+<!-- Barra de seleção -->
+<div id="selectionBar">
+  <span id="selCount">0 selecionados</span>
+  <div class="sel-actions">
+    <button class="sel-btn" id="selAllBtn">Selecionar todos</button>
+    <button class="sel-btn" id="delSelBtn">🗑 Excluir</button>
+    <button class="sel-btn" id="cancelSelBtn">✕</button>
+  </div>
+</div>
 
+<main>
   <div id="noSupport">
     ⚠️ Seu navegador não suporta reconhecimento de voz.<br>
     <strong>Use o Chrome no Android</strong> para que funcione corretamente.
   </div>
 
-  <!-- Botão principal -->
+  <!-- Botão de gravação -->
   <section class="record-section">
     <div class="pulse-ring" id="pulseRing"></div>
     <button id="recordBtn" aria-label="Gravar">
-      <!-- Ícone microfone -->
       <svg id="iconMic" viewBox="0 0 24 24"><path d="M12 1a3.5 3.5 0 0 0-3.5 3.5v7a3.5 3.5 0 0 0 7 0v-7A3.5 3.5 0 0 0 12 1zm-1.5 3.5a1.5 1.5 0 0 1 3 0v7a1.5 1.5 0 0 1-3 0v-7zM5 11a1 1 0 0 1 2 0 5 5 0 0 0 10 0 1 1 0 1 1 2 0 7 7 0 0 1-6 6.92V20h2a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2h2v-2.08A7 7 0 0 1 5 11z"/></svg>
-      <!-- Ícone stop -->
       <svg id="iconStop" viewBox="0 0 24 24" style="display:none"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
     </button>
     <p id="statusLabel">Toque para gravar</p>
     <div class="spinner" id="spinner"></div>
   </section>
 
-  <!-- Resultado -->
+  <!-- Transcrição atual -->
   <div class="card">
     <div class="card-header">
       <span class="card-title">Transcrição</span>
@@ -244,168 +274,306 @@
     </div>
     <div id="historyList"></div>
   </div>
-
 </main>
+
+<!-- Modal de edição -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <div class="modal-title">Editar transcrição</div>
+    <div class="modal-meta" id="editMeta"></div>
+    <textarea class="modal-textarea" id="editTextarea" rows="5"></textarea>
+    <div class="modal-btns">
+      <button class="modal-btn secondary" id="editCancel">Cancelar</button>
+      <button class="modal-btn primary"   id="editSave">Salvar</button>
+    </div>
+  </div>
+</div>
 
 <div id="toast"></div>
 
 <script>
-  const recordBtn   = document.getElementById('recordBtn');
-  const iconMic     = document.getElementById('iconMic');
-  const iconStop    = document.getElementById('iconStop');
-  const pulseRing   = document.getElementById('pulseRing');
-  const statusLabel = document.getElementById('statusLabel');
-  const spinner     = document.getElementById('spinner');
+  /* ─── Elementos ─── */
+  const recordBtn     = document.getElementById('recordBtn');
+  const iconMic       = document.getElementById('iconMic');
+  const iconStop      = document.getElementById('iconStop');
+  const pulseRing     = document.getElementById('pulseRing');
+  const statusLabel   = document.getElementById('statusLabel');
+  const spinner       = document.getElementById('spinner');
   const transcriptBox = document.getElementById('transcriptBox');
-  const copyBtn     = document.getElementById('copyBtn');
-  const clearBtn    = document.getElementById('clearBtn');
-  const historyCard = document.getElementById('historyCard');
-  const historyList = document.getElementById('historyList');
-  const toast       = document.getElementById('toast');
-  const noSupport   = document.getElementById('noSupport');
+  const copyBtn       = document.getElementById('copyBtn');
+  const clearBtn      = document.getElementById('clearBtn');
+  const historyCard   = document.getElementById('historyCard');
+  const historyList   = document.getElementById('historyList');
+  const toast         = document.getElementById('toast');
+  const noSupport     = document.getElementById('noSupport');
+  const selectionBar  = document.getElementById('selectionBar');
+  const mainHeader    = document.getElementById('mainHeader');
+  const selCount      = document.getElementById('selCount');
+  const selAllBtn     = document.getElementById('selAllBtn');
+  const delSelBtn     = document.getElementById('delSelBtn');
+  const cancelSelBtn  = document.getElementById('cancelSelBtn');
+  const editModal     = document.getElementById('editModal');
+  const editTextarea  = document.getElementById('editTextarea');
+  const editMeta      = document.getElementById('editMeta');
+  const editSave      = document.getElementById('editSave');
+  const editCancel    = document.getElementById('editCancel');
 
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  if (!SpeechRecognition) {
-    noSupport.style.display = 'block';
-    recordBtn.disabled = true;
-    recordBtn.style.opacity = '.4';
-  }
+  /* ─── Estado ─── */
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { noSupport.style.display = 'block'; recordBtn.disabled = true; recordBtn.style.opacity = '.4'; }
 
   let recognition = null;
   let recording   = false;
   let fullText    = '';
-  const history   = [];
+  let selecting   = false;
+  let selectedIds = new Set();
+  let editingId   = null;
 
+  /* ─── Histórico persistido ─── */
+  let history = JSON.parse(localStorage.getItem('h_items') || '[]');
+
+  function saveHistory() {
+    localStorage.setItem('h_items', JSON.stringify(history));
+  }
+
+  /* ─── Gravação ─── */
   function setRecording(state) {
     recording = state;
     recordBtn.classList.toggle('recording', state);
     pulseRing.classList.toggle('active', state);
-    iconMic.style.display  = state ? 'none'  : '';
-    iconStop.style.display = state ? ''      : 'none';
+    iconMic.style.display  = state ? 'none' : '';
+    iconStop.style.display = state ? ''     : 'none';
     statusLabel.textContent = state ? 'Ouvindo... fale agora' : 'Toque para gravar';
   }
 
   function showTranscript(text) {
     fullText = text;
-    if (text) {
-      transcriptBox.textContent = text;
-      transcriptBox.classList.remove('empty');
-      copyBtn.style.display = '';
-      clearBtn.style.display = '';
-
-      // Histórico
-      const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-      history.unshift({ text, time });
-      if (history.length > 10) history.pop();
-      renderHistory();
-    }
+    transcriptBox.textContent = text;
+    transcriptBox.classList.toggle('empty', !text);
+    copyBtn.style.display  = text ? '' : 'none';
+    clearBtn.style.display = text ? '' : 'none';
+    if (text) addToHistory(text);
   }
 
+  function addToHistory(text) {
+    const id   = Date.now();
+    const date = new Date();
+    const time = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    history.unshift({ id, text, time, date: dateStr });
+    saveHistory();
+    renderHistory();
+  }
+
+  recordBtn.addEventListener('click', () => {
+    if (!SR) return;
+    if (recording) { recognition && recognition.stop(); return; }
+
+    recognition = new SR();
+    recognition.lang = 'pt-BR';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+
+    recognition.onstart  = () => setRecording(true);
+    recognition.onresult = (e) => {
+      let final = '', interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) final += t; else interim += t;
+      }
+      if (final) { showTranscript(final.trim()); }
+      else { transcriptBox.textContent = interim || 'Ouvindo...'; transcriptBox.classList.remove('empty'); }
+    };
+    recognition.onerror  = (e) => {
+      setRecording(false);
+      if (e.error === 'not-allowed') showToast('Permita o uso do microfone');
+      else if (e.error !== 'aborted') showToast('Erro: ' + e.error);
+    };
+    recognition.onend = () => { setRecording(false); statusLabel.textContent = 'Toque para gravar'; };
+    recognition.start();
+  });
+
+  copyBtn.addEventListener('click', () => copyText(fullText));
+  clearBtn.addEventListener('click', () => { fullText = ''; showTranscript(''); });
+
+  /* ─── Renderizar histórico ─── */
   function renderHistory() {
     historyCard.style.display = history.length ? '' : 'none';
-    historyList.innerHTML = history.map((item, i) => `
-      <div class="history-item" onclick="restoreHistory(${i})">
-        <div class="history-text">${escHtml(item.text)}</div>
-        <div class="history-time">${item.time}</div>
-      </div>
-    `).join('');
+    historyList.innerHTML = history.map(item => {
+      const checked = selectedIds.has(item.id);
+      return `
+        <div class="history-item${checked ? ' selected' : ''}" data-id="${item.id}">
+          <div class="h-check${checked ? ' checked' : ''}"></div>
+          <div class="h-content">
+            <div class="history-text">${escHtml(item.text)}</div>
+            <div class="history-meta">
+              <span class="history-time">${item.date} ${item.time}</span>
+            </div>
+          </div>
+          <div class="h-actions">
+            <button class="h-act-btn edit"  data-id="${item.id}" title="Editar">
+              <svg viewBox="0 0 24 24" fill="#6c63ff"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+            </button>
+            <button class="h-act-btn copy" data-id="${item.id}" title="Copiar">
+              <svg viewBox="0 0 24 24" fill="#a0a8c0"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+    updateSelectionBar();
   }
 
-  function restoreHistory(i) {
-    showTranscript(history[i].text);
-    showToast('Texto restaurado');
+  /* ─── Cliques no histórico ─── */
+  let pressTimer = null;
+
+  historyList.addEventListener('pointerdown', (e) => {
+    const item = e.target.closest('.history-item');
+    if (!item) return;
+    pressTimer = setTimeout(() => { pressTimer = null; enterSelecting(); toggleSelect(+item.dataset.id); }, 500);
+  });
+
+  historyList.addEventListener('pointerup',    () => clearTimeout(pressTimer));
+  historyList.addEventListener('pointermove',  () => clearTimeout(pressTimer));
+  historyList.addEventListener('pointercancel',() => clearTimeout(pressTimer));
+
+  historyList.addEventListener('click', (e) => {
+    // Botão editar
+    const editBtn = e.target.closest('.h-act-btn.edit');
+    if (editBtn) { openEdit(+editBtn.dataset.id); return; }
+
+    // Botão copiar
+    const copyBtnH = e.target.closest('.h-act-btn.copy');
+    if (copyBtnH) { const it = history.find(h => h.id === +copyBtnH.dataset.id); if (it) copyText(it.text); return; }
+
+    const item = e.target.closest('.history-item');
+    if (!item) return;
+    const id = +item.dataset.id;
+
+    if (selecting) {
+      toggleSelect(id);
+    } else {
+      // Toque simples fora do modo seleção → mostra no box principal
+      const it = history.find(h => h.id === id);
+      if (it) { showTranscriptFromHistory(it.text); showToast('Texto carregado'); }
+    }
+  });
+
+  function showTranscriptFromHistory(text) {
+    fullText = text;
+    transcriptBox.textContent = text;
+    transcriptBox.classList.remove('empty');
+    copyBtn.style.display  = '';
+    clearBtn.style.display = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ─── Seleção ─── */
+  function enterSelecting() {
+    selecting = true;
+    document.body.classList.add('selecting');
+    mainHeader.style.display  = 'none';
+    selectionBar.classList.add('visible');
+  }
+
+  function exitSelecting() {
+    selecting = false;
+    selectedIds.clear();
+    document.body.classList.remove('selecting');
+    mainHeader.style.display  = '';
+    selectionBar.classList.remove('visible');
+    renderHistory();
+  }
+
+  function toggleSelect(id) {
+    if (!selecting) enterSelecting();
+    if (selectedIds.has(id)) selectedIds.delete(id);
+    else selectedIds.add(id);
+    renderHistory();
+    if (selectedIds.size === 0) exitSelecting();
+  }
+
+  function updateSelectionBar() {
+    const n = selectedIds.size;
+    selCount.textContent = n === 1 ? '1 selecionado' : `${n} selecionados`;
+    const allSelected = history.length > 0 && selectedIds.size === history.length;
+    selAllBtn.textContent = allSelected ? 'Desmarcar todos' : 'Selecionar todos';
+  }
+
+  selAllBtn.addEventListener('click', () => {
+    if (selectedIds.size === history.length) {
+      selectedIds.clear();
+      exitSelecting();
+    } else {
+      history.forEach(it => selectedIds.add(it.id));
+      renderHistory();
+    }
+  });
+
+  delSelBtn.addEventListener('click', () => {
+    if (selectedIds.size === 0) return;
+    const n = selectedIds.size;
+    if (!confirm(`Excluir ${n} ${n === 1 ? 'item' : 'itens'}?`)) return;
+    history = history.filter(it => !selectedIds.has(it.id));
+    saveHistory();
+    exitSelecting();
+    showToast(`${n} ${n === 1 ? 'item excluído' : 'itens excluídos'}`);
+  });
+
+  cancelSelBtn.addEventListener('click', exitSelecting);
+
+  /* ─── Edição ─── */
+  function openEdit(id) {
+    const item = history.find(h => h.id === id);
+    if (!item) return;
+    editingId = id;
+    editTextarea.value = item.text;
+    editMeta.textContent = `${item.date} às ${item.time}`;
+    editModal.classList.add('open');
+    setTimeout(() => editTextarea.focus(), 50);
+  }
+
+  function closeEdit() {
+    editModal.classList.remove('open');
+    editingId = null;
+  }
+
+  editSave.addEventListener('click', () => {
+    if (editingId === null) return;
+    const newText = editTextarea.value.trim();
+    if (!newText) { showToast('O texto não pode estar vazio'); return; }
+    const item = history.find(h => h.id === editingId);
+    if (item) { item.text = newText; saveHistory(); renderHistory(); showToast('Salvo!'); }
+    closeEdit();
+  });
+
+  editCancel.addEventListener('click', closeEdit);
+  editModal.addEventListener('click', (e) => { if (e.target === editModal) closeEdit(); });
+
+  /* ─── Utilitários ─── */
+  function copyText(text) {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => showToast('Copiado!')).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      showToast('Copiado!');
+    });
   }
 
   function escHtml(s) {
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  let toastTimer;
   function showToast(msg) {
+    clearTimeout(toastTimer);
     toast.textContent = msg;
     toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2000);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
   }
 
-  recordBtn.addEventListener('click', () => {
-    if (!SpeechRecognition) return;
-    if (recording) {
-      recognition && recognition.stop();
-      return;
-    }
-
-    recognition = new SpeechRecognition();
-    recognition.lang = 'pt-BR';
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
-
-    let interim = '';
-
-    recognition.onstart = () => {
-      setRecording(true);
-      interim = '';
-    };
-
-    recognition.onresult = (e) => {
-      let interimText = '';
-      let finalText = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) finalText += t;
-        else interimText += t;
-      }
-      if (finalText) {
-        showTranscript(finalText.trim());
-      } else {
-        // Mostra texto intermediário em tempo real
-        transcriptBox.textContent = interimText || 'Ouvindo...';
-        transcriptBox.classList.remove('empty');
-      }
-    };
-
-    recognition.onerror = (e) => {
-      setRecording(false);
-      spinner.classList.remove('visible');
-      if (e.error === 'not-allowed') {
-        showToast('Permita o uso do microfone');
-      } else if (e.error !== 'aborted') {
-        showToast('Erro: ' + e.error);
-      }
-    };
-
-    recognition.onend = () => {
-      setRecording(false);
-      spinner.classList.remove('visible');
-      statusLabel.textContent = 'Toque para gravar';
-    };
-
-    recognition.start();
-  });
-
-  copyBtn.addEventListener('click', () => {
-    if (!fullText) return;
-    navigator.clipboard.writeText(fullText)
-      .then(() => showToast('Copiado!'))
-      .catch(() => {
-        // fallback para dispositivos mais antigos
-        const ta = document.createElement('textarea');
-        ta.value = fullText;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        showToast('Copiado!');
-      });
-  });
-
-  clearBtn.addEventListener('click', () => {
-    fullText = '';
-    transcriptBox.textContent = 'O texto transcrito aparecerá aqui...';
-    transcriptBox.classList.add('empty');
-    copyBtn.style.display = 'none';
-    clearBtn.style.display = 'none';
-  });
+  /* ─── Init ─── */
+  renderHistory();
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
