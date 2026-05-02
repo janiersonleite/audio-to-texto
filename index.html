@@ -229,7 +229,7 @@
 <header id="mainHeader">
   <div class="header-left">
     <h1>Áudio → Texto</h1>
-    <span class="build-info">v3 · 02/05/2026 às 21:30</span>
+    <span class="build-info" id="buildInfo">v4 · 02/05/2026 às 22:15</span>
   </div>
 </header>
 
@@ -335,10 +335,28 @@
   let editingId   = null;
 
   /* ─── Histórico persistido ─── */
-  let transcripts = JSON.parse(localStorage.getItem('h_items') || '[]');
+  function loadHistory() {
+    try {
+      return JSON.parse(localStorage.getItem('h_items') || '[]');
+    } catch (e) {
+      return [];
+    }
+  }
+
+  let transcripts = loadHistory();
 
   function saveHistory() {
-    localStorage.setItem('h_items', JSON.stringify(transcripts));
+    try {
+      localStorage.setItem('h_items', JSON.stringify(transcripts));
+      updateBuildInfo();
+    } catch (e) {
+      showToast('Erro ao salvar: ' + e.message);
+    }
+  }
+
+  function updateBuildInfo() {
+    const el = document.getElementById('buildInfo');
+    if (el) el.textContent = `v4 · ${transcripts.length} item(s) salvo(s)`;
   }
 
   /* ─── Gravação ─── */
@@ -579,8 +597,13 @@
 
   /* ─── Init ─── */
   renderHistory();
+  updateBuildInfo();
 
   if ('serviceWorker' in navigator) {
+    // Desregistra SWs antigos que possam estar servindo cache desatualizado
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      regs.forEach(reg => reg.update());
+    });
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 </script>
