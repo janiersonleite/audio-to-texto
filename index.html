@@ -687,21 +687,12 @@
   updateBuildInfo();
   renderHistory();
 
-  // Limpa TODOS os service workers e caches — recarrega a página ao trocar SW
+  // Registra SW — ao trocar de versão, recarrega automaticamente
   if ('serviceWorker' in navigator) {
-    // Quando um novo SW toma controle, recarrega a página para pegar o HTML mais recente
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       window.location.reload();
     });
-
-    navigator.serviceWorker.getRegistrations().then(regs => {
-      regs.forEach(r => r.unregister());
-    });
-
-    // Limpa todos os caches do browser para este site
-    if ('caches' in window) {
-      caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-    }
+    navigator.serviceWorker.register('sw.js');
   }
 
   /* ── Verificação automática de versão ── */
