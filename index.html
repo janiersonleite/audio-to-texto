@@ -134,6 +134,21 @@
     }
 
     /* ══ PAINEL HISTÓRICO ══ */
+    .hist-toolbar {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 12px;
+    }
+    .hist-count { font-size: 12px; color: #4a5a7a; }
+    .hist-sel-btn {
+      display: flex; align-items: center; gap: 5px;
+      background: #16213e; border: 1px solid #1a2a4a;
+      border-radius: 8px; padding: 6px 12px;
+      color: #a0a8c0; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .hist-sel-btn svg { width: 14px; height: 14px; fill: #a0a8c0; }
+    .hist-sel-btn:active { background: #0f3460; }
+    body.selecting .hist-toolbar { display: none; }
+
     .hist-empty {
       text-align: center; padding: 48px 20px;
       color: #2e3e5e; font-size: 14px; line-height: 1.8;
@@ -290,6 +305,13 @@
 
   <!-- Painel: Histórico -->
   <div class="panel" id="panelHistorico">
+    <div class="hist-toolbar" id="histToolbar">
+      <span class="hist-count" id="histCount"></span>
+      <button class="hist-sel-btn" id="startSelBtn" onclick="enterSelecting()">
+        <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+        Selecionar
+      </button>
+    </div>
     <div id="histEmpty" class="hist-empty">
       <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 1 0 9 9h-2a7 7 0 1 1-2.05-4.95L15 9h5V4l-1.75 1.75A8.96 8.96 0 0 0 13 3zm-1 5v5.25l4.5 2.67-.75 1.23L11 14.5V8h1z"/></svg>
       Nenhuma transcrição salva ainda.<br>Grave algo para começar.
@@ -377,8 +399,14 @@
   }
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v5 · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v6 · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
+    const countEl = document.getElementById('histCount');
+    if (countEl) countEl.textContent = transcripts.length
+      ? `${transcripts.length} transcrição${transcripts.length > 1 ? 'ões' : ''}`
+      : '';
+    const selBtn = document.getElementById('startSelBtn');
+    if (selBtn) selBtn.style.display = transcripts.length ? '' : 'none';
   }
 
   /* ── Gravação ── */
