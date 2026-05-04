@@ -436,8 +436,10 @@
     } catch (e) { showToast('Erro ao salvar'); }
   }
 
+  const BUILD_DATETIME = '04/05/2026 19:39';
+
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v7 · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v7 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
