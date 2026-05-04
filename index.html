@@ -18,132 +18,149 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: #1a1a2e;
       color: #e0e6f0;
-      min-height: 100vh;
+      height: 100dvh;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
 
-    /* ── Header ── */
+    /* ══ HEADER ══ */
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 14px 20px;
-      position: sticky;
-      top: 0;
+      padding: 14px 20px 10px;
       background: #1a1a2e;
-      z-index: 10;
+      flex-shrink: 0;
     }
-    .header-left { display: flex; flex-direction: column; gap: 2px; }
-    header h1 { font-size: 20px; font-weight: 700; }
-    .build-info { font-size: 10px; color: #3a4a6a; letter-spacing: .3px; }
+    .header-left { display: flex; flex-direction: column; gap: 1px; }
+    header h1    { font-size: 19px; font-weight: 700; }
+    .build-info  { font-size: 10px; color: #3a4a6a; }
 
-    /* Barra de seleção (substitui o header quando há itens selecionados) */
+    /* Barra de seleção */
     #selectionBar {
       display: none;
       justify-content: space-between;
       align-items: center;
-      padding: 18px 20px;
-      position: sticky;
-      top: 0;
+      padding: 12px 16px;
       background: #16213e;
-      z-index: 10;
       border-bottom: 1px solid #0f3460;
+      flex-shrink: 0;
     }
     #selectionBar.visible { display: flex; }
-    #selCount { font-size: 16px; font-weight: 600; color: #e0e6f0; }
+    #selCount { font-size: 15px; font-weight: 600; }
     .sel-actions { display: flex; gap: 8px; align-items: center; }
-    .sel-btn {
-      border: none; cursor: pointer; border-radius: 8px;
-      padding: 8px 14px; font-size: 13px; font-weight: 600;
+    .sel-btn { border: none; cursor: pointer; border-radius: 8px; padding: 7px 12px; font-size: 12px; font-weight: 600; }
+    #selAllBtn    { background: #0f3460; color: #a0a8c0; }
+    #delSelBtn    { background: #ff4757; color: #fff; }
+    #cancelSelBtn { background: none; color: #a0a8c0; font-size: 20px; padding: 4px 8px; }
+
+    /* ══ TABS ══ */
+    .tab-bar {
+      display: flex;
+      background: #12192e;
+      border-bottom: 1px solid #1a2a4a;
+      flex-shrink: 0;
     }
-    #selAllBtn  { background: #0f3460; color: #a0a8c0; }
-    #delSelBtn  { background: #ff4757; color: #fff; }
-    #cancelSelBtn { background: none; color: #a0a8c0; font-size: 22px; padding: 4px 8px; }
+    .tab-btn {
+      flex: 1; border: none; background: none; cursor: pointer;
+      padding: 10px 0 8px;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      color: #4a5a7a; transition: color .2s;
+      position: relative;
+    }
+    .tab-btn.active { color: #6c63ff; }
+    .tab-btn.active::after {
+      content: ''; position: absolute; bottom: 0; left: 20%; right: 20%;
+      height: 2px; background: #6c63ff; border-radius: 2px;
+    }
+    .tab-btn svg  { width: 22px; height: 22px; fill: currentColor; }
+    .tab-btn span { font-size: 11px; font-weight: 600; }
+    .tab-badge {
+      position: absolute; top: 6px; right: calc(50% - 18px);
+      background: #ff4757; color: #fff;
+      font-size: 9px; font-weight: 700;
+      min-width: 16px; height: 16px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 4px;
+    }
+    .tab-badge:empty { display: none; }
 
-    main { flex: 1; padding: 0 20px 40px; overflow-y: auto; }
+    /* ══ PAINÉIS ══ */
+    .panels { flex: 1; overflow: hidden; position: relative; }
+    .panel  { position: absolute; inset: 0; overflow-y: auto; padding: 16px 16px 24px; display: none; }
+    .panel.active { display: block; }
 
-    /* ── Botão de gravação ── */
+    /* ══ PAINEL GRAVAÇÃO ══ */
     .record-section {
       display: flex; flex-direction: column; align-items: center;
-      margin: 36px 0; position: relative;
+      margin: 24px 0 20px; position: relative;
     }
     .pulse-ring {
-      position: absolute; width: 140px; height: 140px; border-radius: 50%;
-      background: #ff4757; opacity: 0; transform: scale(1); transition: opacity .2s;
+      position: absolute; width: 130px; height: 130px; border-radius: 50%;
+      background: #ff4757; opacity: 0; transition: opacity .2s;
     }
-    .pulse-ring.active { opacity: .3; animation: pulse 1.2s ease-in-out infinite; }
+    .pulse-ring.active { opacity: .28; animation: pulse 1.2s ease-in-out infinite; }
     @keyframes pulse {
-      0%   { transform: scale(1); }
-      50%  { transform: scale(1.35); }
-      100% { transform: scale(1); }
+      0%,100% { transform: scale(1); }
+      50%      { transform: scale(1.35); }
     }
     #recordBtn {
-      position: relative; width: 110px; height: 110px; border-radius: 50%;
+      position: relative; width: 100px; height: 100px; border-radius: 50%;
       border: none; background: #6c63ff; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 20px rgba(108,99,255,.55);
+      box-shadow: 0 4px 20px rgba(108,99,255,.5);
       transition: background .2s, box-shadow .2s; z-index: 1;
     }
-    #recordBtn.recording { background: #ff4757; box-shadow: 0 4px 20px rgba(255,71,87,.55); }
-    #recordBtn svg { width: 48px; height: 48px; fill: #fff; }
-    #statusLabel { margin-top: 20px; font-size: 15px; color: #a0a8c0; letter-spacing: .3px; }
-    .spinner {
-      display: none; width: 32px; height: 32px;
-      border: 3px solid #2a2a4a; border-top-color: #6c63ff;
-      border-radius: 50%; animation: spin .7s linear infinite; margin-top: 12px;
-    }
-    .spinner.visible { display: block; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    #recordBtn.recording { background: #ff4757; box-shadow: 0 4px 20px rgba(255,71,87,.5); }
+    #recordBtn svg { width: 44px; height: 44px; fill: #fff; }
+    #statusLabel { margin-top: 16px; font-size: 14px; color: #a0a8c0; }
 
-    /* ── Card ── */
-    .card { background: #16213e; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
-    .card-header {
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
-    }
-    .card-title {
-      font-size: 11px; font-weight: 700; color: #a0a8c0;
-      text-transform: uppercase; letter-spacing: 1.2px;
-    }
-    #transcriptBox {
-      font-size: 16px; line-height: 1.6; color: #e0e6f0;
-      min-height: 80px; white-space: pre-wrap; word-break: break-word;
-    }
-    #transcriptBox.empty { color: #3a4060; font-style: italic; }
-    .icon-btn { background: none; border: none; cursor: pointer; padding: 4px; opacity: .8; }
-    .icon-btn:active { opacity: .5; }
-    .icon-btn svg { width: 20px; height: 20px; fill: #6c63ff; }
-    .clear-btn {
-      margin-top: 12px; float: right; background: none; border: none;
-      color: #ff4757; font-size: 13px; font-weight: 600; cursor: pointer;
+    /* Card transcrição */
+    .card { background: #16213e; border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .card-title  { font-size: 10px; font-weight: 700; color: #a0a8c0; text-transform: uppercase; letter-spacing: 1.2px; }
+    #transcriptBox { font-size: 15px; line-height: 1.65; color: #e0e6f0; min-height: 72px; white-space: pre-wrap; word-break: break-word; }
+    #transcriptBox.empty { color: #2e3e5e; font-style: italic; }
+    .icon-btn { background: none; border: none; cursor: pointer; padding: 4px; }
+    .icon-btn svg { width: 19px; height: 19px; fill: #6c63ff; }
+    .icon-btn:active svg { opacity: .6; }
+    .clear-btn { margin-top: 10px; float: right; background: none; border: none; color: #ff4757; font-size: 12px; font-weight: 600; cursor: pointer; }
+
+    #noSupport {
+      display: none; background: #2a1a1a; border: 1px solid #ff4757;
+      border-radius: 12px; padding: 14px; margin-bottom: 14px;
+      font-size: 13px; line-height: 1.5; color: #ffb3b3;
     }
 
-    /* ── Histórico ── */
-    #historyCard { display: none; }
+    /* ══ PAINEL HISTÓRICO ══ */
+    .hist-empty {
+      text-align: center; padding: 48px 20px;
+      color: #2e3e5e; font-size: 14px; line-height: 1.8;
+    }
+    .hist-empty svg { width: 48px; height: 48px; fill: #2e3e5e; margin-bottom: 12px; display: block; margin-inline: auto; }
+
     .history-item {
-      display: flex; align-items: flex-start; gap: 12px;
-      border-top: 1px solid #0f3460; padding: 12px 0;
-      cursor: pointer; transition: background .15s; border-radius: 8px;
-      padding-left: 4px; padding-right: 4px;
+      display: flex; align-items: flex-start; gap: 10px;
+      border-bottom: 1px solid #0f2040; padding: 12px 4px;
+      cursor: pointer; transition: background .15s; border-radius: 10px;
     }
-    .history-item:first-child { border-top: none; }
+    .history-item:last-child { border-bottom: none; }
     .history-item:active { background: #0f1a2e; }
+    .history-item.selected { background: #0d1e38; }
 
-    /* Checkbox */
     .h-check {
-      width: 22px; height: 22px; min-width: 22px; border-radius: 50%;
+      width: 20px; height: 20px; min-width: 20px; border-radius: 50%;
       border: 2px solid #2a3a5e; background: transparent;
       display: flex; align-items: center; justify-content: center;
-      margin-top: 2px; transition: border-color .15s, background .15s;
+      margin-top: 3px; transition: border-color .15s, background .15s;
     }
     .h-check.checked { border-color: #6c63ff; background: #6c63ff; }
     .h-check.checked::after {
-      content: ''; display: block;
-      width: 6px; height: 10px;
+      content: ''; display: block; width: 5px; height: 9px;
       border-right: 2px solid #fff; border-bottom: 2px solid #fff;
       transform: rotate(45deg) translate(-1px, -1px);
     }
-    /* Checkbox oculto fora do modo seleção */
     body:not(.selecting) .h-check { display: none; }
 
     .h-content { flex: 1; min-width: 0; }
@@ -152,141 +169,142 @@
       overflow: hidden; text-overflow: ellipsis;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
     }
-    .history-meta {
-      display: flex; gap: 10px; align-items: center; margin-top: 4px;
-    }
-    .history-time { font-size: 12px; color: #a0a8c0; }
+    .history-time { font-size: 11px; color: #a0a8c0; margin-top: 4px; }
 
-    /* Botões de ação por item (editar / copiar) */
-    .h-actions { display: flex; gap: 4px; }
+    .h-actions { display: flex; gap: 2px; }
     body.selecting .h-actions { display: none; }
     .h-act-btn {
       background: none; border: none; cursor: pointer;
-      padding: 6px; border-radius: 8px; opacity: .7;
-      transition: opacity .15s, background .15s;
+      padding: 7px; border-radius: 8px;
+      transition: background .15s;
     }
-    .h-act-btn:active { opacity: 1; background: #0f3460; }
+    .h-act-btn:active { background: #0f3460; }
     .h-act-btn svg { width: 16px; height: 16px; display: block; }
     .h-act-btn.edit svg { fill: #6c63ff; }
-    .h-act-btn.copy svg { fill: #a0a8c0; }
+    .h-act-btn.copy svg { fill: #607090; }
 
-    /* Item selecionado */
-    .history-item.selected { background: #0d1e38; border-radius: 8px; }
-
-    /* ── Modal de edição ── */
+    /* ══ MODAL EDIÇÃO ══ */
     .modal-overlay {
       display: none; position: fixed; inset: 0;
       background: rgba(0,0,0,.75); z-index: 100;
-      align-items: flex-end; justify-content: center;
+      align-items: flex-end;
     }
     .modal-overlay.open { display: flex; }
     .modal-box {
-      background: #16213e; border-radius: 24px 24px 0 0;
-      padding: 24px; width: 100%; max-height: 85vh;
-      display: flex; flex-direction: column; gap: 14px;
-      animation: slideUp .25s ease;
+      background: #16213e; border-radius: 22px 22px 0 0;
+      padding: 22px; width: 100%; max-height: 85dvh;
+      display: flex; flex-direction: column; gap: 12px;
+      animation: slideUp .22s ease;
     }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    .modal-title { font-size: 17px; font-weight: 700; color: #e0e6f0; }
-    .modal-meta  { font-size: 12px; color: #a0a8c0; margin-top: -8px; }
+    .modal-title    { font-size: 16px; font-weight: 700; }
+    .modal-meta     { font-size: 11px; color: #a0a8c0; margin-top: -6px; }
     .modal-textarea {
-      flex: 1; min-height: 140px; max-height: 45vh;
-      background: #0f3460; border: 1px solid #1a4a7a; border-radius: 12px;
-      padding: 14px; color: #e0e6f0; font-size: 15px; line-height: 1.6;
+      flex: 1; min-height: 120px; max-height: 42dvh;
+      background: #0f3460; border: 1px solid #1a4a7a; border-radius: 10px;
+      padding: 12px; color: #e0e6f0; font-size: 15px; line-height: 1.6;
       resize: none; font-family: inherit;
     }
     .modal-textarea:focus { outline: none; border-color: #6c63ff; }
-    .modal-btns { display: flex; gap: 12px; }
-    .modal-btn {
-      flex: 1; border: none; border-radius: 10px;
-      padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer;
-    }
-    .modal-btn.primary { background: #6c63ff; color: #fff; }
+    .modal-btns { display: flex; gap: 10px; }
+    .modal-btn { flex: 1; border: none; border-radius: 10px; padding: 13px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .modal-btn.primary   { background: #6c63ff; color: #fff; }
     .modal-btn.secondary { background: #0f3460; color: #a0a8c0; }
 
-    /* Toast */
+    /* ══ TOAST ══ */
     #toast {
-      position: fixed; bottom: 30px; left: 50%;
-      transform: translateX(-50%) translateY(20px);
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(16px);
       background: #6c63ff; color: #fff;
-      padding: 10px 22px; border-radius: 30px;
-      font-size: 14px; font-weight: 600;
-      opacity: 0; transition: opacity .25s, transform .25s;
+      padding: 9px 20px; border-radius: 28px;
+      font-size: 13px; font-weight: 600;
+      opacity: 0; transition: opacity .22s, transform .22s;
       pointer-events: none; white-space: nowrap; z-index: 200;
     }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-    #noSupport {
-      display: none; background: #2a1a1a; border: 1px solid #ff4757;
-      border-radius: 12px; padding: 16px; margin-bottom: 16px;
-      font-size: 14px; line-height: 1.5; color: #ffb3b3;
-    }
   </style>
 </head>
 <body>
 
-<!-- Header normal -->
+<!-- Header -->
 <header id="mainHeader">
   <div class="header-left">
     <h1>Áudio → Texto</h1>
-    <span class="build-info" id="buildInfo">v4 · 02/05/2026 às 22:15</span>
+    <span class="build-info" id="buildInfo">v5 · 02/05/2026</span>
   </div>
 </header>
 
-<!-- Barra de seleção -->
+<!-- Barra de seleção (histórico) -->
 <div id="selectionBar">
   <span id="selCount">0 selecionados</span>
   <div class="sel-actions">
-    <button class="sel-btn" id="selAllBtn">Selecionar todos</button>
+    <button class="sel-btn" id="selAllBtn">Todos</button>
     <button class="sel-btn" id="delSelBtn">🗑 Excluir</button>
     <button class="sel-btn" id="cancelSelBtn">✕</button>
   </div>
 </div>
 
-<main>
-  <div id="noSupport">
-    ⚠️ Seu navegador não suporta reconhecimento de voz.<br>
-    <strong>Use o Chrome no Android</strong> para que funcione corretamente.
-  </div>
+<!-- Abas -->
+<nav class="tab-bar">
+  <button class="tab-btn active" id="tabGravar" onclick="switchTab('gravar')">
+    <svg viewBox="0 0 24 24"><path d="M12 1a3.5 3.5 0 0 0-3.5 3.5v7a3.5 3.5 0 0 0 7 0v-7A3.5 3.5 0 0 0 12 1zm-1.5 3.5a1.5 1.5 0 0 1 3 0v7a1.5 1.5 0 0 1-3 0v-7zM5 11a1 1 0 0 1 2 0 5 5 0 0 0 10 0 1 1 0 1 1 2 0 7 7 0 0 1-6 6.92V20h2a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2h2v-2.08A7 7 0 0 1 5 11z"/></svg>
+    <span>Gravar</span>
+  </button>
+  <button class="tab-btn" id="tabHistorico" onclick="switchTab('historico')">
+    <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 1 0 9 9h-2a7 7 0 1 1-2.05-4.95L15 9h5V4l-1.75 1.75A8.96 8.96 0 0 0 13 3zm-1 5v5.25l4.5 2.67-.75 1.23L11 14.5V8h1z"/></svg>
+    <span>Histórico</span>
+    <span class="tab-badge" id="histBadge"></span>
+  </button>
+</nav>
 
-  <!-- Botão de gravação -->
-  <section class="record-section">
-    <div class="pulse-ring" id="pulseRing"></div>
-    <button id="recordBtn" aria-label="Gravar">
-      <svg id="iconMic" viewBox="0 0 24 24"><path d="M12 1a3.5 3.5 0 0 0-3.5 3.5v7a3.5 3.5 0 0 0 7 0v-7A3.5 3.5 0 0 0 12 1zm-1.5 3.5a1.5 1.5 0 0 1 3 0v7a1.5 1.5 0 0 1-3 0v-7zM5 11a1 1 0 0 1 2 0 5 5 0 0 0 10 0 1 1 0 1 1 2 0 7 7 0 0 1-6 6.92V20h2a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2h2v-2.08A7 7 0 0 1 5 11z"/></svg>
-      <svg id="iconStop" viewBox="0 0 24 24" style="display:none"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
-    </button>
-    <p id="statusLabel">Toque para gravar</p>
-    <div class="spinner" id="spinner"></div>
-  </section>
+<!-- Painéis -->
+<div class="panels">
 
-  <!-- Transcrição atual -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">Transcrição</span>
-      <button class="icon-btn" id="copyBtn" title="Copiar" style="display:none">
-        <svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
-      </button>
+  <!-- Painel: Gravar -->
+  <div class="panel active" id="panelGravar">
+    <div id="noSupport">
+      ⚠️ Seu navegador não suporta reconhecimento de voz.<br>
+      <strong>Use o Chrome no Android</strong> para que funcione corretamente.
     </div>
-    <div id="transcriptBox" class="empty">O texto transcrito aparecerá aqui...</div>
-    <button class="clear-btn" id="clearBtn" style="display:none">Limpar</button>
+
+    <section class="record-section">
+      <div class="pulse-ring" id="pulseRing"></div>
+      <button id="recordBtn" aria-label="Gravar">
+        <svg id="iconMic" viewBox="0 0 24 24"><path d="M12 1a3.5 3.5 0 0 0-3.5 3.5v7a3.5 3.5 0 0 0 7 0v-7A3.5 3.5 0 0 0 12 1zm-1.5 3.5a1.5 1.5 0 0 1 3 0v7a1.5 1.5 0 0 1-3 0v-7zM5 11a1 1 0 0 1 2 0 5 5 0 0 0 10 0 1 1 0 1 1 2 0 7 7 0 0 1-6 6.92V20h2a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2h2v-2.08A7 7 0 0 1 5 11z"/></svg>
+        <svg id="iconStop" viewBox="0 0 24 24" style="display:none"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+      </button>
+      <p id="statusLabel">Toque para gravar</p>
+    </section>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Transcrição</span>
+        <button class="icon-btn" id="copyBtn" style="display:none">
+          <svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
+        </button>
+      </div>
+      <div id="transcriptBox" class="empty">O texto transcrito aparecerá aqui...</div>
+      <button class="clear-btn" id="clearBtn" style="display:none">Limpar</button>
+    </div>
   </div>
 
-  <!-- Histórico -->
-  <div class="card" id="historyCard">
-    <div class="card-header">
-      <span class="card-title">Histórico</span>
+  <!-- Painel: Histórico -->
+  <div class="panel" id="panelHistorico">
+    <div id="histEmpty" class="hist-empty">
+      <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 1 0 9 9h-2a7 7 0 1 1-2.05-4.95L15 9h5V4l-1.75 1.75A8.96 8.96 0 0 0 13 3zm-1 5v5.25l4.5 2.67-.75 1.23L11 14.5V8h1z"/></svg>
+      Nenhuma transcrição salva ainda.<br>Grave algo para começar.
     </div>
     <div id="historyList"></div>
   </div>
-</main>
+
+</div>
 
 <!-- Modal de edição -->
 <div class="modal-overlay" id="editModal">
   <div class="modal-box">
     <div class="modal-title">Editar transcrição</div>
     <div class="modal-meta" id="editMeta"></div>
-    <textarea class="modal-textarea" id="editTextarea" rows="5"></textarea>
+    <textarea class="modal-textarea" id="editTextarea"></textarea>
     <div class="modal-btns">
       <button class="modal-btn secondary" id="editCancel">Cancelar</button>
       <button class="modal-btn primary"   id="editSave">Salvar</button>
@@ -297,18 +315,18 @@
 <div id="toast"></div>
 
 <script>
-  /* ─── Elementos ─── */
+  /* ── Elementos ── */
   const recordBtn     = document.getElementById('recordBtn');
   const iconMic       = document.getElementById('iconMic');
   const iconStop      = document.getElementById('iconStop');
   const pulseRing     = document.getElementById('pulseRing');
   const statusLabel   = document.getElementById('statusLabel');
-  const spinner       = document.getElementById('spinner');
   const transcriptBox = document.getElementById('transcriptBox');
   const copyBtn       = document.getElementById('copyBtn');
   const clearBtn      = document.getElementById('clearBtn');
-  const historyCard   = document.getElementById('historyCard');
   const historyList   = document.getElementById('historyList');
+  const histEmpty     = document.getElementById('histEmpty');
+  const histBadge     = document.getElementById('histBadge');
   const toast         = document.getElementById('toast');
   const noSupport     = document.getElementById('noSupport');
   const selectionBar  = document.getElementById('selectionBar');
@@ -323,7 +341,18 @@
   const editSave      = document.getElementById('editSave');
   const editCancel    = document.getElementById('editCancel');
 
-  /* ─── Estado ─── */
+  /* ── Abas ── */
+  let activeTab = 'gravar';
+  function switchTab(tab) {
+    activeTab = tab;
+    document.getElementById('panelGravar').classList.toggle('active',    tab === 'gravar');
+    document.getElementById('panelHistorico').classList.toggle('active', tab === 'historico');
+    document.getElementById('tabGravar').classList.toggle('active',    tab === 'gravar');
+    document.getElementById('tabHistorico').classList.toggle('active', tab === 'historico');
+    if (tab === 'historico') renderHistory();
+  }
+
+  /* ── Estado ── */
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { noSupport.style.display = 'block'; recordBtn.disabled = true; recordBtn.style.opacity = '.4'; }
 
@@ -334,57 +363,52 @@
   let selectedIds = new Set();
   let editingId   = null;
 
-  /* ─── Histórico persistido ─── */
-  function loadHistory() {
-    try {
-      return JSON.parse(localStorage.getItem('h_items') || '[]');
-    } catch (e) {
-      return [];
-    }
+  /* ── Histórico (localStorage) ── */
+  function loadTranscripts() {
+    try { return JSON.parse(localStorage.getItem('h_items') || '[]'); } catch { return []; }
   }
+  let transcripts = loadTranscripts();
 
-  let transcripts = loadHistory();
-
-  function saveHistory() {
+  function saveTranscripts() {
     try {
       localStorage.setItem('h_items', JSON.stringify(transcripts));
       updateBuildInfo();
-    } catch (e) {
-      showToast('Erro ao salvar: ' + e.message);
-    }
+    } catch (e) { showToast('Erro ao salvar'); }
   }
 
   function updateBuildInfo() {
-    const el = document.getElementById('buildInfo');
-    if (el) el.textContent = `v4 · ${transcripts.length} item(s) salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v5 · ${transcripts.length} salvo(s)`;
+    histBadge.textContent = transcripts.length || '';
   }
 
-  /* ─── Gravação ─── */
+  /* ── Gravação ── */
   function setRecording(state) {
     recording = state;
     recordBtn.classList.toggle('recording', state);
     pulseRing.classList.toggle('active', state);
     iconMic.style.display  = state ? 'none' : '';
-    iconStop.style.display = state ? ''     : 'none';
+    iconStop.style.display = state ? '' : 'none';
     statusLabel.textContent = state ? 'Ouvindo... fale agora' : 'Toque para gravar';
   }
 
   function showTranscript(text) {
     fullText = text;
-    transcriptBox.textContent = text;
+    transcriptBox.textContent = text || 'O texto transcrito aparecerá aqui...';
     transcriptBox.classList.toggle('empty', !text);
     copyBtn.style.display  = text ? '' : 'none';
     clearBtn.style.display = text ? '' : 'none';
-    if (text) addToHistory(text);
+    if (text) addTranscript(text);
   }
 
-  function addToHistory(text) {
-    const id      = Date.now();
-    const date    = new Date();
-    const time    = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-    transcripts.unshift({ id, text, time, date: dateStr });
-    saveHistory();
+  function addTranscript(text) {
+    const now = new Date();
+    transcripts.unshift({
+      id:   Date.now(),
+      text,
+      time: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      date: now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }),
+    });
+    saveTranscripts();
     renderHistory();
   }
 
@@ -393,80 +417,90 @@
     if (recording) { recognition && recognition.stop(); return; }
 
     recognition = new SR();
-    recognition.lang = 'pt-BR';
-    recognition.continuous = false;
-    recognition.interimResults = true;
+    recognition.lang            = 'pt-BR';
+    recognition.continuous      = false;
+    recognition.interimResults  = true;
 
-    recognition.onstart  = () => setRecording(true);
+    recognition.onstart = () => setRecording(true);
+
     recognition.onresult = (e) => {
       let final = '', interim = '';
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const t = e.results[i][0].transcript;
         if (e.results[i].isFinal) final += t; else interim += t;
       }
-      if (final) { showTranscript(final.trim()); }
-      else { transcriptBox.textContent = interim || 'Ouvindo...'; transcriptBox.classList.remove('empty'); }
+      if (final) {
+        showTranscript(final.trim());
+      } else {
+        transcriptBox.textContent = interim || 'Ouvindo...';
+        transcriptBox.classList.remove('empty');
+      }
     };
-    recognition.onerror  = (e) => {
+
+    recognition.onerror = (e) => {
       setRecording(false);
       if (e.error === 'not-allowed') showToast('Permita o uso do microfone');
       else if (e.error !== 'aborted') showToast('Erro: ' + e.error);
     };
+
     recognition.onend = () => { setRecording(false); statusLabel.textContent = 'Toque para gravar'; };
     recognition.start();
   });
 
   copyBtn.addEventListener('click', () => copyText(fullText));
-  clearBtn.addEventListener('click', () => { fullText = ''; showTranscript(''); });
+  clearBtn.addEventListener('click', () => showTranscript(''));
 
-  /* ─── Renderizar histórico ─── */
+  /* ── Renderizar histórico ── */
   function renderHistory() {
-    historyCard.style.display = transcripts.length ? '' : 'none';
+    const empty = transcripts.length === 0;
+    histEmpty.style.display   = empty ? '' : 'none';
+    historyList.style.display = empty ? 'none' : '';
+
+    if (empty) return;
+
     historyList.innerHTML = transcripts.map(item => {
       const checked = selectedIds.has(item.id);
-      return `
-        <div class="history-item${checked ? ' selected' : ''}" data-id="${item.id}">
-          <div class="h-check${checked ? ' checked' : ''}"></div>
-          <div class="h-content">
-            <div class="history-text">${escHtml(item.text)}</div>
-            <div class="history-meta">
-              <span class="history-time">${item.date} ${item.time}</span>
-            </div>
-          </div>
-          <div class="h-actions">
-            <button class="h-act-btn edit"  data-id="${item.id}" title="Editar">
-              <svg viewBox="0 0 24 24" fill="#6c63ff"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-            </button>
-            <button class="h-act-btn copy" data-id="${item.id}" title="Copiar">
-              <svg viewBox="0 0 24 24" fill="#a0a8c0"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
-            </button>
-          </div>
-        </div>`;
+      return `<div class="history-item${checked ? ' selected' : ''}" data-id="${item.id}">
+        <div class="h-check${checked ? ' checked' : ''}"></div>
+        <div class="h-content">
+          <div class="history-text">${escHtml(item.text)}</div>
+          <div class="history-time">${item.date} ${item.time}</div>
+        </div>
+        <div class="h-actions">
+          <button class="h-act-btn edit" data-id="${item.id}" title="Editar">
+            <svg viewBox="0 0 24 24" fill="#6c63ff"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+          </button>
+          <button class="h-act-btn copy" data-id="${item.id}" title="Copiar">
+            <svg viewBox="0 0 24 24" fill="#607090"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
+          </button>
+        </div>
+      </div>`;
     }).join('');
-    updateSelectionBar();
+    updateSelBar();
   }
 
-  /* ─── Cliques no histórico ─── */
+  /* ── Interação no histórico ── */
   let pressTimer = null;
 
-  historyList.addEventListener('pointerdown', (e) => {
+  historyList.addEventListener('pointerdown', e => {
     const item = e.target.closest('.history-item');
     if (!item) return;
-    pressTimer = setTimeout(() => { pressTimer = null; enterSelecting(); toggleSelect(+item.dataset.id); }, 500);
+    pressTimer = setTimeout(() => { pressTimer = null; enterSelecting(); toggleSelect(+item.dataset.id); }, 480);
   });
+  ['pointerup','pointermove','pointercancel'].forEach(ev =>
+    historyList.addEventListener(ev, () => clearTimeout(pressTimer))
+  );
 
-  historyList.addEventListener('pointerup',    () => clearTimeout(pressTimer));
-  historyList.addEventListener('pointermove',  () => clearTimeout(pressTimer));
-  historyList.addEventListener('pointercancel',() => clearTimeout(pressTimer));
-
-  historyList.addEventListener('click', (e) => {
-    // Botão editar
+  historyList.addEventListener('click', e => {
     const editBtn = e.target.closest('.h-act-btn.edit');
     if (editBtn) { openEdit(+editBtn.dataset.id); return; }
 
-    // Botão copiar
-    const copyBtnH = e.target.closest('.h-act-btn.copy');
-    if (copyBtnH) { const it = transcripts.find(h => h.id === +copyBtnH.dataset.id); if (it) copyText(it.text); return; }
+    const copyBtnEl = e.target.closest('.h-act-btn.copy');
+    if (copyBtnEl) {
+      const it = transcripts.find(t => t.id === +copyBtnEl.dataset.id);
+      if (it) copyText(it.text);
+      return;
+    }
 
     const item = e.target.closest('.history-item');
     if (!item) return;
@@ -475,26 +509,26 @@
     if (selecting) {
       toggleSelect(id);
     } else {
-      // Toque simples fora do modo seleção → mostra no box principal
-      const it = transcripts.find(h => h.id === id);
-      if (it) { showTranscriptFromHistory(it.text); showToast('Texto carregado'); }
+      const it = transcripts.find(t => t.id === id);
+      if (it) { loadIntoRecorder(it.text); }
     }
   });
 
-  function showTranscriptFromHistory(text) {
+  function loadIntoRecorder(text) {
     fullText = text;
     transcriptBox.textContent = text;
     transcriptBox.classList.remove('empty');
     copyBtn.style.display  = '';
     clearBtn.style.display = '';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    switchTab('gravar');
+    showToast('Texto carregado');
   }
 
-  /* ─── Seleção ─── */
+  /* ── Seleção ── */
   function enterSelecting() {
     selecting = true;
     document.body.classList.add('selecting');
-    mainHeader.style.display  = 'none';
+    mainHeader.style.display = 'none';
     selectionBar.classList.add('visible');
   }
 
@@ -502,51 +536,46 @@
     selecting = false;
     selectedIds.clear();
     document.body.classList.remove('selecting');
-    mainHeader.style.display  = '';
+    mainHeader.style.display = '';
     selectionBar.classList.remove('visible');
     renderHistory();
   }
 
   function toggleSelect(id) {
     if (!selecting) enterSelecting();
-    if (selectedIds.has(id)) selectedIds.delete(id);
-    else selectedIds.add(id);
+    selectedIds.has(id) ? selectedIds.delete(id) : selectedIds.add(id);
     renderHistory();
     if (selectedIds.size === 0) exitSelecting();
   }
 
-  function updateSelectionBar() {
+  function updateSelBar() {
     const n = selectedIds.size;
     selCount.textContent = n === 1 ? '1 selecionado' : `${n} selecionados`;
-    const allSelected = transcripts.length > 0 && selectedIds.size === transcripts.length;
-    selAllBtn.textContent = allSelected ? 'Desmarcar todos' : 'Selecionar todos';
+    const allSel = transcripts.length > 0 && n === transcripts.length;
+    selAllBtn.textContent = allSel ? 'Nenhum' : 'Todos';
   }
 
   selAllBtn.addEventListener('click', () => {
-    if (selectedIds.size === transcripts.length) {
-      selectedIds.clear();
-      exitSelecting();
-    } else {
-      history.forEach(it => selectedIds.add(it.id));
-      renderHistory();
-    }
+    if (selectedIds.size === transcripts.length) { exitSelecting(); return; }
+    transcripts.forEach(t => selectedIds.add(t.id));
+    renderHistory();
   });
 
   delSelBtn.addEventListener('click', () => {
-    if (selectedIds.size === 0) return;
     const n = selectedIds.size;
+    if (!n) return;
     if (!confirm(`Excluir ${n} ${n === 1 ? 'item' : 'itens'}?`)) return;
-    history = history.filter(it => !selectedIds.has(it.id));
-    saveHistory();
+    transcripts = transcripts.filter(t => !selectedIds.has(t.id));
+    saveTranscripts();
     exitSelecting();
     showToast(`${n} ${n === 1 ? 'item excluído' : 'itens excluídos'}`);
   });
 
   cancelSelBtn.addEventListener('click', exitSelecting);
 
-  /* ─── Edição ─── */
+  /* ── Edição ── */
   function openEdit(id) {
-    const item = history.find(h => h.id === id);
+    const item = transcripts.find(t => t.id === id);
     if (!item) return;
     editingId = id;
     editTextarea.value = item.text;
@@ -555,31 +584,26 @@
     setTimeout(() => editTextarea.focus(), 50);
   }
 
-  function closeEdit() {
-    editModal.classList.remove('open');
-    editingId = null;
-  }
-
   editSave.addEventListener('click', () => {
     if (editingId === null) return;
-    const newText = editTextarea.value.trim();
-    if (!newText) { showToast('O texto não pode estar vazio'); return; }
-    const item = history.find(h => h.id === editingId);
-    if (item) { item.text = newText; saveHistory(); renderHistory(); showToast('Salvo!'); }
+    const text = editTextarea.value.trim();
+    if (!text) { showToast('O texto não pode estar vazio'); return; }
+    const item = transcripts.find(t => t.id === editingId);
+    if (item) { item.text = text; saveTranscripts(); renderHistory(); showToast('Salvo!'); }
     closeEdit();
   });
 
+  function closeEdit() { editModal.classList.remove('open'); editingId = null; }
   editCancel.addEventListener('click', closeEdit);
-  editModal.addEventListener('click', (e) => { if (e.target === editModal) closeEdit(); });
+  editModal.addEventListener('click', e => { if (e.target === editModal) closeEdit(); });
 
-  /* ─── Utilitários ─── */
+  /* ── Utilitários ── */
   function copyText(text) {
     if (!text) return;
     navigator.clipboard.writeText(text).then(() => showToast('Copiado!')).catch(() => {
-      const ta = document.createElement('textarea');
-      ta.value = text; document.body.appendChild(ta); ta.select();
-      document.execCommand('copy'); document.body.removeChild(ta);
-      showToast('Copiado!');
+      const ta = Object.assign(document.createElement('textarea'), { value: text });
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta); showToast('Copiado!');
     });
   }
 
@@ -595,15 +619,12 @@
     toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
   }
 
-  /* ─── Init ─── */
-  renderHistory();
+  /* ── Init ── */
   updateBuildInfo();
+  renderHistory();
 
   if ('serviceWorker' in navigator) {
-    // Desregistra SWs antigos que possam estar servindo cache desatualizado
-    navigator.serviceWorker.getRegistrations().then(regs => {
-      regs.forEach(reg => reg.update());
-    });
+    navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.update()));
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 </script>
