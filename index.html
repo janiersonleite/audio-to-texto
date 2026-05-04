@@ -623,8 +623,11 @@
   updateBuildInfo();
   renderHistory();
 
+  // Desregistra todos os service workers antigos e registra o novo (que limpa o cache)
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.update()));
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      regs.forEach(r => r.unregister());
+    });
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 </script>
