@@ -78,6 +78,7 @@
     .sel-actions { display: flex; gap: 8px; align-items: center; }
     .sel-btn { border: none; cursor: pointer; border-radius: 8px; padding: 7px 12px; font-size: 12px; font-weight: 600; }
     #selAllBtn    { background: #0f3460; color: #a0a8c0; }
+    #copySelBtn   { background: #0f3460; color: #6c63ff; }
     #delSelBtn    { background: #ff4757; color: #fff; }
     #cancelSelBtn { background: none; color: #a0a8c0; font-size: 20px; padding: 4px 8px; }
 
@@ -290,6 +291,7 @@
   <span id="selCount">0 selecionados</span>
   <div class="sel-actions">
     <button class="sel-btn" id="selAllBtn">Todos</button>
+    <button class="sel-btn" id="copySelBtn">📋 Copiar</button>
     <button class="sel-btn" id="delSelBtn">🗑 Excluir</button>
     <button class="sel-btn" id="cancelSelBtn">✕</button>
   </div>
@@ -633,6 +635,18 @@
     saveTranscripts();
     exitSelecting();
     showToast(`${n} ${n === 1 ? 'item excluído' : 'itens excluídos'}`);
+  });
+
+  document.getElementById('copySelBtn').addEventListener('click', () => {
+    if (!selectedIds.size) return;
+    const text = transcripts
+      .filter(t => selectedIds.has(t.id))
+      .map(t => t.text)
+      .join('\n\n');
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(`${selectedIds.size === 1 ? 'Texto copiado' : selectedIds.size + ' textos copiados'}`);
+      exitSelecting();
+    }).catch(() => showToast('Erro ao copiar'));
   });
 
   cancelSelBtn.addEventListener('click', exitSelecting);
