@@ -11,6 +11,9 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <title>Áudio → Texto</title>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -379,6 +382,27 @@
 <div id="toast"></div>
 
 <script>
+  /* ── Firebase ── */
+  // ⚠️ PREENCHA COM AS CREDENCIAIS DO SEU PROJETO FIREBASE
+  const FIREBASE_CONFIG = {
+    apiKey:            "COLE_AQUI",
+    authDomain:        "COLE_AQUI",
+    projectId:         "COLE_AQUI",
+    storageBucket:     "COLE_AQUI",
+    messagingSenderId: "COLE_AQUI",
+    appId:             "COLE_AQUI"
+  };
+  firebase.initializeApp(FIREBASE_CONFIG);
+  const db = firebase.firestore();
+
+  // ID único por dispositivo — identifica o usuário sem precisar de login
+  let userId = localStorage.getItem('uid');
+  if (!userId) {
+    userId = crypto.randomUUID();
+    localStorage.setItem('uid', userId);
+  }
+  const userDoc = db.collection('transcripts').doc(userId);
+
   /* ── Elementos ── */
   const recordBtn     = document.getElementById('recordBtn');
   const iconMic       = document.getElementById('iconMic');
@@ -427,17 +451,34 @@
   let selectedIds = new Set();
   let editingId   = null;
 
-  /* ── Histórico (localStorage) ── */
-  function loadTranscripts() {
-    try { return JSON.parse(localStorage.getItem('h_items') || '[]'); } catch { return []; }
-  }
-  let transcripts = loadTranscripts();
+  /* ── Histórico (Firebase + localStorage como cache offline) ── */
+  let transcripts = [];
 
-  function saveTranscripts() {
+  async function loadTranscripts() {
     try {
+      const snap = await userDoc.get();
+      transcripts = snap.exists ? (snap.data().items || []) : [];
+      localStorage.setItem('h_items', JSON.stringify(transcripts));
+    } catch {
+      try { transcripts = JSON.parse(localStorage.getItem('h_items') || '[]'); } catch { transcripts = []; }
+    }
+    renderHistory();
+    updateBuildInfo();
+  }
+
+  async function saveTranscripts() {
+    try {
+      await userDoc.set({
+        items: transcripts,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
       localStorage.setItem('h_items', JSON.stringify(transcripts));
       updateBuildInfo();
-    } catch (e) { showToast('Erro ao salvar'); }
+    } catch {
+      try { localStorage.setItem('h_items', JSON.stringify(transcripts)); } catch {}
+      showToast('Sem conexão — salvo localmente');
+      updateBuildInfo();
+    }
   }
 
   const BUILD_DATETIME = '04/05/2026 19:39';
@@ -714,8 +755,7 @@
   }
 
   /* ── Init ── */
-  updateBuildInfo();
-  renderHistory();
+  loadTranscripts();
 
   // Registra SW — ao trocar de versão, recarrega automaticamente
   if ('serviceWorker' in navigator) {
