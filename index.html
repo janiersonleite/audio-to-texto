@@ -11,9 +11,8 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <title>Áudio → Texto</title>
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -382,18 +381,11 @@
 <div id="toast"></div>
 
 <script>
-  /* ── Firebase ── */
-  // ⚠️ PREENCHA COM AS CREDENCIAIS DO SEU PROJETO FIREBASE
-  const FIREBASE_CONFIG = {
-    apiKey:            "COLE_AQUI",
-    authDomain:        "COLE_AQUI",
-    projectId:         "COLE_AQUI",
-    storageBucket:     "COLE_AQUI",
-    messagingSenderId: "COLE_AQUI",
-    appId:             "COLE_AQUI"
-  };
-  firebase.initializeApp(FIREBASE_CONFIG);
-  const db = firebase.firestore();
+  /* ── Supabase ── */
+  // ⚠️ PREENCHA COM AS CREDENCIAIS DO SEU PROJETO SUPABASE
+  const SUPABASE_URL  = "COLE_AQUI";
+  const SUPABASE_KEY  = "COLE_AQUI";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // ID único por dispositivo — identifica o usuário sem precisar de login
   let userId = localStorage.getItem('uid');
@@ -401,7 +393,6 @@
     userId = crypto.randomUUID();
     localStorage.setItem('uid', userId);
   }
-  const userDoc = db.collection('transcripts').doc(userId);
 
   /* ── Elementos ── */
   const recordBtn     = document.getElementById('recordBtn');
@@ -451,13 +442,18 @@
   let selectedIds = new Set();
   let editingId   = null;
 
-  /* ── Histórico (Firebase + localStorage como cache offline) ── */
+  /* ── Histórico (Supabase + localStorage como cache offline) ── */
   let transcripts = [];
 
   async function loadTranscripts() {
     try {
-      const snap = await userDoc.get();
-      transcripts = snap.exists ? (snap.data().items || []) : [];
+      const { data, error } = await sb
+        .from('user_data')
+        .select('items')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (error) throw error;
+      transcripts = data?.items || [];
       localStorage.setItem('h_items', JSON.stringify(transcripts));
     } catch {
       try { transcripts = JSON.parse(localStorage.getItem('h_items') || '[]'); } catch { transcripts = []; }
@@ -468,10 +464,10 @@
 
   async function saveTranscripts() {
     try {
-      await userDoc.set({
-        items: transcripts,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+      const { error } = await sb
+        .from('user_data')
+        .upsert({ user_id: userId, items: transcripts, updated_at: new Date().toISOString() });
+      if (error) throw error;
       localStorage.setItem('h_items', JSON.stringify(transcripts));
       updateBuildInfo();
     } catch {
