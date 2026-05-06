@@ -267,15 +267,84 @@
       pointer-events: none; white-space: nowrap; z-index: 200;
     }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ══ LOGIN ══ */
+    #loginScreen {
+      position: fixed; inset: 0; z-index: 999;
+      background: #1a1a2e;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    #loginScreen.hidden { display: none; }
+    .login-card {
+      width: 100%; max-width: 360px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .login-logo {
+      text-align: center; margin-bottom: 6px;
+    }
+    .login-logo h1 { font-size: 22px; font-weight: 700; }
+    .login-logo p  { font-size: 13px; color: #6a7a9a; margin-top: 4px; }
+    .login-input {
+      width: 100%; padding: 14px 16px;
+      background: #16213e; border: 1px solid #1a2a4a;
+      border-radius: 12px; color: #e0e6f0;
+      font-size: 15px; outline: none;
+    }
+    .login-input:focus { border-color: #6c63ff; }
+    .login-btn-primary {
+      width: 100%; padding: 14px;
+      background: #6c63ff; color: #fff;
+      border: none; border-radius: 12px;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+    }
+    .login-btn-primary:disabled { opacity: .5; }
+    .login-btn-secondary {
+      width: 100%; padding: 12px;
+      background: none; color: #6a7a9a;
+      border: 1px solid #1a2a4a; border-radius: 12px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .login-error { font-size: 13px; color: #ff4757; text-align: center; min-height: 18px; }
+    .login-divider { text-align: center; font-size: 12px; color: #3a4a6a; }
+
+    /* logout no header */
+    #logoutBtn {
+      background: none; border: none; color: #4a5a7a;
+      font-size: 13px; cursor: pointer; padding: 4px 8px;
+      border-radius: 8px;
+    }
+    #logoutBtn:active { background: #16213e; }
+    .header-user { font-size: 11px; color: #4a5a7a; }
   </style>
 </head>
 <body>
+
+<!-- Tela de login -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <h1>🎙 Áudio → Texto</h1>
+      <p>Salve suas transcrições na nuvem</p>
+    </div>
+    <input class="login-input" type="email"    id="loginEmail"    placeholder="E-mail" autocomplete="email" />
+    <input class="login-input" type="password" id="loginPassword" placeholder="Senha (mínimo 6 caracteres)" autocomplete="current-password" />
+    <button class="login-btn-primary"   id="loginBtn">Entrar</button>
+    <div class="login-divider">— ou —</div>
+    <button class="login-btn-secondary" id="signupBtn">Criar conta</button>
+    <p class="login-error" id="loginError"></p>
+  </div>
+</div>
 
 <!-- Header -->
 <header id="mainHeader">
   <div class="header-left">
     <h1>Áudio → Texto</h1>
     <span class="build-info" id="buildInfo">v5 · 02/05/2026</span>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+    <span class="header-user" id="headerUser"></span>
+    <button id="logoutBtn">Sair</button>
   </div>
 </header>
 
@@ -387,12 +456,7 @@
   const SUPABASE_KEY  = "sb_publishable_PL_hM8NHSjyv6I23cVPCSA_VgFt7r7n";
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // ID único por dispositivo — identifica o usuário sem precisar de login
-  let userId = localStorage.getItem('uid');
-  if (!userId) {
-    userId = crypto.randomUUID();
-    localStorage.setItem('uid', userId);
-  }
+  let userId = null;
 
   /* ── Elementos ── */
   const recordBtn     = document.getElementById('recordBtn');
@@ -477,10 +541,10 @@
     }
   }
 
-  const BUILD_DATETIME = '06/05/2026 10:29';
+  const BUILD_DATETIME = '06/05/2026 10:38';
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v8 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v9 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
@@ -750,8 +814,66 @@
     toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
   }
 
+  /* ── Auth ── */
+  const loginScreen   = document.getElementById('loginScreen');
+  const loginEmailEl  = document.getElementById('loginEmail');
+  const loginPassEl   = document.getElementById('loginPassword');
+  const loginBtn      = document.getElementById('loginBtn');
+  const signupBtn     = document.getElementById('signupBtn');
+  const loginError    = document.getElementById('loginError');
+  const headerUser    = document.getElementById('headerUser');
+
+  function showLoginError(msg) { loginError.textContent = msg; }
+
+  sb.auth.onAuthStateChange((event, session) => {
+    if (session) {
+      userId = session.user.id;
+      headerUser.textContent = session.user.email;
+      loginScreen.classList.add('hidden');
+      loadTranscripts();
+    } else {
+      userId = null;
+      transcripts = [];
+      loginScreen.classList.remove('hidden');
+      renderHistory();
+      updateBuildInfo();
+    }
+  });
+
+  loginBtn.addEventListener('click', async () => {
+    const email = loginEmailEl.value.trim();
+    const pass  = loginPassEl.value;
+    if (!email || !pass) { showLoginError('Preencha e-mail e senha'); return; }
+    loginBtn.disabled = true; loginBtn.textContent = 'Entrando…';
+    const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+    if (error) {
+      showLoginError(error.message === 'Invalid login credentials' ? 'E-mail ou senha incorretos' : error.message);
+      loginBtn.disabled = false; loginBtn.textContent = 'Entrar';
+    }
+  });
+
+  signupBtn.addEventListener('click', async () => {
+    const email = loginEmailEl.value.trim();
+    const pass  = loginPassEl.value;
+    if (!email || !pass)   { showLoginError('Preencha e-mail e senha'); return; }
+    if (pass.length < 6)   { showLoginError('Senha deve ter pelo menos 6 caracteres'); return; }
+    signupBtn.disabled = true; signupBtn.textContent = 'Criando conta…';
+    const { error } = await sb.auth.signUp({ email, password: pass });
+    if (error) {
+      showLoginError(error.message);
+      signupBtn.disabled = false; signupBtn.textContent = 'Criar conta';
+    } else {
+      showLoginError('');
+      showToast('Conta criada! Você já está logado.');
+    }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    showToast('Até logo!');
+  });
+
   /* ── Init ── */
-  loadTranscripts();
 
   // Registra SW — ao trocar de versão, recarrega automaticamente
   if ('serviceWorker' in navigator) {
@@ -762,7 +884,7 @@
   }
 
   /* ── Verificação automática de versão ── */
-  const APP_VERSION = 8;
+  const APP_VERSION = 9;
 
   async function checkForUpdate() {
     try {
