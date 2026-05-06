@@ -477,10 +477,10 @@
     }
   }
 
-  const BUILD_DATETIME = '04/05/2026 19:39';
+  const BUILD_DATETIME = '06/05/2026 10:29';
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v7 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v8 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
@@ -762,7 +762,7 @@
   }
 
   /* ── Verificação automática de versão ── */
-  const APP_VERSION = 7;
+  const APP_VERSION = 8;
 
   async function checkForUpdate() {
     try {
