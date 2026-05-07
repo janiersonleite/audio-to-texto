@@ -308,6 +308,18 @@
     .login-error { font-size: 13px; color: #ff4757; text-align: center; min-height: 18px; }
     .login-divider { text-align: center; font-size: 12px; color: #3a4a6a; }
 
+    /* indicador offline */
+    #offlineBadge {
+      display: none;
+      position: fixed; top: 10px; right: 12px; z-index: 600;
+      background: #ff4757; color: #fff;
+      font-size: 11px; font-weight: 700;
+      padding: 4px 10px; border-radius: 20px;
+      pointer-events: none;
+    }
+    body.offline #offlineBadge { display: block; }
+    body.offline #logoutBtn::before { content: ''; }
+
     /* logout no header */
     #logoutBtn {
       background: none; border: none; color: #4a5a7a;
@@ -319,6 +331,9 @@
   </style>
 </head>
 <body>
+
+<!-- Badge offline -->
+<div id="offlineBadge">● Offline</div>
 
 <!-- Tela de login -->
 <div id="loginScreen">
@@ -510,41 +525,68 @@
   let transcripts = [];
 
   async function loadTranscripts() {
-    try {
-      const { data, error } = await sb
-        .from('user_data')
-        .select('items')
-        .eq('user_id', userId)
-        .maybeSingle();
-      if (error) throw error;
-      transcripts = data?.items || [];
-      localStorage.setItem('h_items', JSON.stringify(transcripts));
-    } catch {
-      try { transcripts = JSON.parse(localStorage.getItem('h_items') || '[]'); } catch { transcripts = []; }
-    }
+    // Exibe cache local imediatamente (funciona offline)
+    try { transcripts = JSON.parse(localStorage.getItem('h_items') || '[]'); } catch { transcripts = []; }
     renderHistory();
     updateBuildInfo();
+
+    if (!navigator.onLine || !userId) return;
+
+    // Atualiza com dados do servidor quando online
+    try {
+      const { data, error } = await sb
+        .from('user_data').select('items').eq('user_id', userId).maybeSingle();
+      if (error) throw error;
+      if (data?.items) {
+        transcripts = data.items;
+        localStorage.setItem('h_items', JSON.stringify(transcripts));
+        renderHistory();
+        updateBuildInfo();
+      }
+    } catch {}
   }
 
   async function saveTranscripts() {
+    // Salva localmente primeiro — garante que não perde dados
+    localStorage.setItem('h_items', JSON.stringify(transcripts));
+    updateBuildInfo();
+    if (!userId) return;
+
+    if (!navigator.onLine) {
+      localStorage.setItem('pending_sync', '1');
+      showToast('Salvo localmente — sincronizará ao conectar');
+      return;
+    }
+
     try {
       const { error } = await sb
         .from('user_data')
         .upsert({ user_id: userId, items: transcripts, updated_at: new Date().toISOString() });
       if (error) throw error;
-      localStorage.setItem('h_items', JSON.stringify(transcripts));
-      updateBuildInfo();
+      localStorage.removeItem('pending_sync');
     } catch {
-      try { localStorage.setItem('h_items', JSON.stringify(transcripts)); } catch {}
-      showToast('Sem conexão — salvo localmente');
-      updateBuildInfo();
+      localStorage.setItem('pending_sync', '1');
+      showToast('Erro ao sincronizar — salvo localmente');
     }
   }
 
-  const BUILD_DATETIME = '06/05/2026 10:38';
+  async function syncPending() {
+    if (!userId || !navigator.onLine || !localStorage.getItem('pending_sync')) return;
+    try {
+      const { error } = await sb
+        .from('user_data')
+        .upsert({ user_id: userId, items: transcripts, updated_at: new Date().toISOString() });
+      if (!error) {
+        localStorage.removeItem('pending_sync');
+        showToast('Sincronizado ✓');
+      }
+    } catch {}
+  }
+
+  const BUILD_DATETIME = '07/05/2026 09:45';
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v9 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v10 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
@@ -873,6 +915,15 @@
     showToast('Até logo!');
   });
 
+  /* ── Online / Offline ── */
+  function updateOnlineStatus() {
+    document.body.classList.toggle('offline', !navigator.onLine);
+    if (navigator.onLine) syncPending();
+  }
+  window.addEventListener('online',  updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+  updateOnlineStatus();
+
   /* ── Init ── */
 
   // Registra SW — ao trocar de versão, recarrega automaticamente
@@ -884,7 +935,7 @@
   }
 
   /* ── Verificação automática de versão ── */
-  const APP_VERSION = 9;
+  const APP_VERSION = 10;
 
   async function checkForUpdate() {
     try {
