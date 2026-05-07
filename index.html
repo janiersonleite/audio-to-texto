@@ -195,7 +195,7 @@
     .history-item.selected { background: #0d1e38; }
 
     .h-check {
-      width: 20px; height: 20px; min-width: 20px; border-radius: 50%;
+      width: 22px; height: 22px; min-width: 22px; border-radius: 50%;
       border: 2px solid #2a3a5e; background: transparent;
       display: flex; align-items: center; justify-content: center;
       margin-top: 3px; transition: border-color .15s, background .15s;
@@ -206,7 +206,9 @@
       border-right: 2px solid #fff; border-bottom: 2px solid #fff;
       transform: rotate(45deg) translate(-1px, -1px);
     }
-    body:not(.selecting) .h-check { display: none; }
+    /* checkbox sempre visível; destaca ao passar o dedo */
+    .h-check { cursor: pointer; }
+    .history-item:active .h-check:not(.checked) { border-color: #6c63ff; }
 
     .h-content { flex: 1; min-width: 0; }
     .history-text {
@@ -583,10 +585,10 @@
     } catch {}
   }
 
-  const BUILD_DATETIME = '07/05/2026 09:45';
+  const BUILD_DATETIME = '07/05/2026 09:59';
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v10 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v11 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
@@ -707,6 +709,14 @@
   );
 
   historyList.addEventListener('click', e => {
+    // Clique direto no checkbox — seleciona sem precisar do botão "Selecionar"
+    const checkEl = e.target.closest('.h-check');
+    if (checkEl) {
+      const item = checkEl.closest('.history-item');
+      if (item) { toggleSelect(+item.dataset.id); }
+      return;
+    }
+
     const editBtn = e.target.closest('.h-act-btn.edit');
     if (editBtn) { openEdit(+editBtn.dataset.id); return; }
 
@@ -935,7 +945,7 @@
   }
 
   /* ── Verificação automática de versão ── */
-  const APP_VERSION = 10;
+  const APP_VERSION = 11;
 
   async function checkForUpdate() {
     try {
