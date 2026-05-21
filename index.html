@@ -79,11 +79,52 @@
     #selCount { font-size: 15px; font-weight: 600; }
     .sel-actions { display: flex; gap: 8px; align-items: center; }
     .sel-btn { border: none; cursor: pointer; border-radius: 8px; padding: 7px 12px; font-size: 12px; font-weight: 600; }
-    #selAllBtn    { background: #0f3460; color: #a0a8c0; }
-    #copySelBtn      { background: #0f3460; color: #6c63ff; }
-    #whatsappSelBtn  { background: #25d366; color: #fff; }
-    #delSelBtn    { background: #ff4757; color: #fff; }
-    #cancelSelBtn { background: none; color: #a0a8c0; font-size: 20px; padding: 4px 8px; }
+    #selAllBtn      { background: #0f3460; color: #a0a8c0; }
+    #catSelBtn      { background: #0f3460; color: #f59e0b; }
+    #copySelBtn     { background: #0f3460; color: #6c63ff; }
+    #whatsappSelBtn { background: #25d366; color: #fff; }
+    #delSelBtn      { background: #ff4757; color: #fff; }
+    #cancelSelBtn   { background: none; color: #a0a8c0; font-size: 20px; padding: 4px 8px; }
+
+    /* Painel de categoria em massa */
+    #bulkCatPanel {
+      display: none; position: fixed; inset: 0; z-index: 300;
+      align-items: flex-end;
+      background: rgba(0,0,0,.6);
+    }
+    #bulkCatPanel.open { display: flex; }
+    .bulk-cat-box {
+      background: #16213e; border-radius: 22px 22px 0 0;
+      padding: 22px; width: 100%;
+      display: flex; flex-direction: column; gap: 14px;
+      animation: slideUp .22s ease;
+    }
+    .bulk-cat-title { font-size: 16px; font-weight: 700; }
+    .bulk-cat-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+    .bulk-cat-chip {
+      border: 1.5px solid #2a3a5e; background: none; cursor: pointer;
+      padding: 7px 16px; border-radius: 20px;
+      font-size: 13px; font-weight: 600; color: #a0a8c0;
+      transition: all .15s;
+    }
+    .bulk-cat-chip:active { background: #6c63ff; border-color: #6c63ff; color: #fff; }
+    .bulk-new-cat { display: flex; gap: 8px; }
+    .bulk-new-cat input {
+      flex: 1; background: #0f3460; border: 1px solid #1a4a7a;
+      border-radius: 8px; color: #e0e6f0; font-size: 14px;
+      padding: 10px 12px; outline: none; font-family: inherit;
+    }
+    .bulk-new-cat input:focus { border-color: #6c63ff; }
+    .bulk-new-cat button {
+      background: #6c63ff; color: #fff; border: none;
+      border-radius: 8px; padding: 10px 16px;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+    }
+    .bulk-cat-cancel {
+      background: none; border: none; color: #6a7a9a;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      text-align: center; padding: 4px;
+    }
 
     /* ══ TABS ══ */
     .tab-bar {
@@ -424,6 +465,7 @@
   <span id="selCount">0 selecionados</span>
   <div class="sel-actions">
     <button class="sel-btn" id="selAllBtn">Todos</button>
+    <button class="sel-btn" id="catSelBtn">🏷 Categoria</button>
     <button class="sel-btn" id="copySelBtn">📋 Copiar</button>
     <button class="sel-btn" id="whatsappSelBtn">
       <svg viewBox="0 0 24 24" width="13" height="13" fill="#fff" style="vertical-align:middle;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.122 1.532 5.854L.054 23.25a.75.75 0 0 0 .918.903l5.4-1.732A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.907 0-3.7-.512-5.24-1.407l-.374-.22-3.868 1.24 1.188-3.758-.242-.389A10 10 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>WhatsApp
@@ -512,6 +554,19 @@
       <button class="modal-btn secondary" id="editCancel">Cancelar</button>
       <button class="modal-btn primary"   id="editSave">Salvar</button>
     </div>
+  </div>
+</div>
+
+<!-- Painel de categoria em massa -->
+<div id="bulkCatPanel">
+  <div class="bulk-cat-box">
+    <div class="bulk-cat-title">Aplicar categoria aos selecionados</div>
+    <div class="bulk-cat-chips" id="bulkCatChips"></div>
+    <div class="bulk-new-cat">
+      <input type="text" id="bulkNewCatInput" placeholder="Nova categoria…" maxlength="30" />
+      <button id="bulkNewCatBtn">+</button>
+    </div>
+    <button class="bulk-cat-cancel" id="bulkCatCancel">Cancelar</button>
   </div>
 </div>
 
@@ -636,10 +691,10 @@
     } catch {}
   }
 
-  const BUILD_DATETIME = '21/05/2026 18:26';
+  const BUILD_DATETIME = '21/05/2026 18:29';
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v12 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v13 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
@@ -933,6 +988,52 @@
     exitSelecting();
   });
 
+  /* ── Categoria em massa ── */
+  const bulkCatPanel = document.getElementById('bulkCatPanel');
+
+  function openBulkCat() {
+    const cats = ['Geral', ...getCategories().filter(c => c !== 'Geral')];
+    document.getElementById('bulkCatChips').innerHTML = cats.map(c =>
+      `<button class="bulk-cat-chip" data-cat="${escHtml(c)}" style="${catStyle(c)}">${escHtml(c)}</button>`
+    ).join('');
+    document.getElementById('bulkNewCatInput').value = '';
+    bulkCatPanel.classList.add('open');
+  }
+
+  function applyBulkCat(cat) {
+    transcripts.forEach(t => { if (selectedIds.has(t.id)) t.category = cat; });
+    saveTranscripts();
+    renderHistory();
+    bulkCatPanel.classList.remove('open');
+    const n = selectedIds.size;
+    exitSelecting();
+    showToast(`Categoria "${cat}" aplicada a ${n} item${n > 1 ? 's' : ''}`);
+  }
+
+  document.getElementById('catSelBtn').addEventListener('click', () => {
+    if (!selectedIds.size) return;
+    openBulkCat();
+  });
+
+  document.getElementById('bulkCatChips').addEventListener('click', e => {
+    const chip = e.target.closest('.bulk-cat-chip');
+    if (chip) applyBulkCat(chip.dataset.cat);
+  });
+
+  document.getElementById('bulkNewCatBtn').addEventListener('click', () => {
+    const val = document.getElementById('bulkNewCatInput').value.trim();
+    if (!val) return;
+    applyBulkCat(val);
+  });
+
+  document.getElementById('bulkCatCancel').addEventListener('click', () => {
+    bulkCatPanel.classList.remove('open');
+  });
+
+  bulkCatPanel.addEventListener('click', e => {
+    if (e.target === bulkCatPanel) bulkCatPanel.classList.remove('open');
+  });
+
   cancelSelBtn.addEventListener('click', exitSelecting);
 
   /* ── Edição ── */
@@ -1066,7 +1167,7 @@
   }
 
   /* ── Verificação automática de versão ── */
-  const APP_VERSION = 12;
+  const APP_VERSION = 13;
 
   async function checkForUpdate() {
     try {
