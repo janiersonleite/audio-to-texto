@@ -230,6 +230,50 @@
     .h-act-btn.edit svg { fill: #6c63ff; }
     .h-act-btn.copy svg { fill: #607090; }
 
+    /* ══ CATEGORIAS ══ */
+    .cat-filter {
+      display: flex; gap: 8px; overflow-x: auto;
+      padding-bottom: 10px; margin-bottom: 2px;
+      scrollbar-width: none;
+    }
+    .cat-filter::-webkit-scrollbar { display: none; }
+    .cat-chip {
+      flex-shrink: 0; border: none; cursor: pointer;
+      padding: 6px 14px; border-radius: 20px;
+      font-size: 12px; font-weight: 600;
+      background: #16213e; color: #6a7a9a;
+      transition: background .15s, color .15s;
+    }
+    .cat-chip.active { background: #6c63ff; color: #fff; }
+
+    .h-cat {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      padding: 2px 8px; border-radius: 10px; margin-bottom: 4px;
+    }
+
+    /* seletor de categoria no modal */
+    .modal-cat-label { font-size: 12px; color: #a0a8c0; font-weight: 600; margin-bottom: -4px; }
+    .modal-cat-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .modal-cat-chip {
+      border: 1.5px solid #2a3a5e; background: none; cursor: pointer;
+      padding: 5px 14px; border-radius: 16px;
+      font-size: 12px; font-weight: 600; color: #a0a8c0;
+      transition: all .15s;
+    }
+    .modal-cat-chip.active { background: #6c63ff; border-color: #6c63ff; color: #fff; }
+    .modal-new-cat { display: flex; gap: 8px; }
+    .modal-new-cat input {
+      flex: 1; background: #0f3460; border: 1px solid #1a4a7a;
+      border-radius: 8px; color: #e0e6f0; font-size: 13px;
+      padding: 7px 10px; outline: none; font-family: inherit;
+    }
+    .modal-new-cat input:focus { border-color: #6c63ff; }
+    .modal-new-cat button {
+      background: #6c63ff; color: #fff; border: none;
+      border-radius: 8px; padding: 7px 14px;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+
     /* ══ MODAL EDIÇÃO ══ */
     .modal-overlay {
       display: none; position: fixed; inset: 0;
@@ -442,6 +486,7 @@
         Selecionar
       </button>
     </div>
+    <div class="cat-filter" id="catFilter"></div>
     <div id="histEmpty" class="hist-empty">
       <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 1 0 9 9h-2a7 7 0 1 1-2.05-4.95L15 9h5V4l-1.75 1.75A8.96 8.96 0 0 0 13 3zm-1 5v5.25l4.5 2.67-.75 1.23L11 14.5V8h1z"/></svg>
       Nenhuma transcrição salva ainda.<br>Grave algo para começar.
@@ -457,6 +502,12 @@
     <div class="modal-title">Editar transcrição</div>
     <div class="modal-meta" id="editMeta"></div>
     <textarea class="modal-textarea" id="editTextarea"></textarea>
+    <div class="modal-cat-label">Categoria</div>
+    <div class="modal-cat-chips" id="editCatChips"></div>
+    <div class="modal-new-cat">
+      <input type="text" id="newCatInput" placeholder="Nova categoria…" maxlength="30" />
+      <button id="newCatBtn">+</button>
+    </div>
     <div class="modal-btns">
       <button class="modal-btn secondary" id="editCancel">Cancelar</button>
       <button class="modal-btn primary"   id="editSave">Salvar</button>
@@ -585,10 +636,10 @@
     } catch {}
   }
 
-  const BUILD_DATETIME = '07/05/2026 09:59';
+  const BUILD_DATETIME = '21/05/2026 18:26';
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v11 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v12 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
@@ -620,8 +671,9 @@
   function addTranscript(text) {
     const now = new Date();
     transcripts.unshift({
-      id:   Date.now(),
+      id:       Date.now(),
       text,
+      category: 'Geral',
       time: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       date: now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }),
     });
@@ -667,19 +719,82 @@
   copyBtn.addEventListener('click', () => copyText(fullText));
   clearBtn.addEventListener('click', () => showTranscript(''));
 
+  /* ── Categorias ── */
+  const CAT_PALETTE = [
+    ['#16304a','#4facfe'], ['#221640','#a78bfa'], ['#163024','#34d399'],
+    ['#302010','#fb923c'], ['#301020','#f472b6'], ['#103028','#2dd4bf'],
+  ];
+  function catStyle(name) {
+    let h = 0; for (const c of (name||'Geral')) h = (h*31+c.charCodeAt(0)) & 0xffff;
+    const [bg, color] = CAT_PALETTE[h % CAT_PALETTE.length];
+    return `background:${bg};color:${color}`;
+  }
+  function getCategories() {
+    return [...new Set(transcripts.map(t => t.category || 'Geral'))];
+  }
+
+  let activeCategory  = 'Todas';
+  let editingCategory = 'Geral';
+
+  function renderCategoryFilter() {
+    const cats = ['Todas', ...getCategories()];
+    const el = document.getElementById('catFilter');
+    el.style.display = transcripts.length ? '' : 'none';
+    el.innerHTML = cats.map(c =>
+      `<button class="cat-chip${activeCategory===c?' active':''}" data-cat="${escHtml(c)}">${escHtml(c)}</button>`
+    ).join('');
+  }
+
+  document.getElementById('catFilter').addEventListener('click', e => {
+    const chip = e.target.closest('.cat-chip');
+    if (!chip) return;
+    activeCategory = chip.dataset.cat;
+    renderCategoryFilter();
+    renderHistory();
+  });
+
+  function renderEditCatChips() {
+    const cats = ['Geral', ...getCategories().filter(c => c !== 'Geral')];
+    document.getElementById('editCatChips').innerHTML = cats.map(c =>
+      `<button class="modal-cat-chip${editingCategory===c?' active':''}" data-cat="${escHtml(c)}">${escHtml(c)}</button>`
+    ).join('');
+  }
+
+  document.getElementById('editCatChips').addEventListener('click', e => {
+    const chip = e.target.closest('.modal-cat-chip');
+    if (!chip) return;
+    editingCategory = chip.dataset.cat;
+    renderEditCatChips();
+  });
+
+  document.getElementById('newCatBtn').addEventListener('click', () => {
+    const val = document.getElementById('newCatInput').value.trim();
+    if (!val) return;
+    editingCategory = val;
+    document.getElementById('newCatInput').value = '';
+    renderEditCatChips();
+  });
+
   /* ── Renderizar histórico ── */
   function renderHistory() {
     const empty = transcripts.length === 0;
     histEmpty.style.display   = empty ? '' : 'none';
-    historyList.style.display = empty ? 'none' : '';
+    renderCategoryFilter();
 
+    const filtered = activeCategory === 'Todas'
+      ? transcripts
+      : transcripts.filter(t => (t.category || 'Geral') === activeCategory);
+
+    historyList.style.display = filtered.length ? '' : 'none';
     if (empty) return;
 
-    historyList.innerHTML = transcripts.map(item => {
+    historyList.innerHTML = filtered.map(item => {
       const checked = selectedIds.has(item.id);
+      const cat     = item.category || 'Geral';
       return `<div class="history-item${checked ? ' selected' : ''}" data-id="${item.id}">
         <div class="h-check${checked ? ' checked' : ''}"></div>
         <div class="h-content">
+          <span class="h-cat" style="${catStyle(cat)}">${escHtml(cat)}</span>
           <div class="history-text">${escHtml(item.text)}</div>
           <div class="history-time">${item.date} ${item.time}</div>
         </div>
@@ -824,9 +939,11 @@
   function openEdit(id) {
     const item = transcripts.find(t => t.id === id);
     if (!item) return;
-    editingId = id;
+    editingId       = id;
+    editingCategory = item.category || 'Geral';
     editTextarea.value = item.text;
     editMeta.textContent = `${item.date} às ${item.time}`;
+    renderEditCatChips();
     editModal.classList.add('open');
     setTimeout(() => editTextarea.focus(), 50);
   }
@@ -836,7 +953,11 @@
     const text = editTextarea.value.trim();
     if (!text) { showToast('O texto não pode estar vazio'); return; }
     const item = transcripts.find(t => t.id === editingId);
-    if (item) { item.text = text; saveTranscripts(); renderHistory(); showToast('Salvo!'); }
+    if (item) {
+      item.text     = text;
+      item.category = editingCategory;
+      saveTranscripts(); renderHistory(); showToast('Salvo!');
+    }
     closeEdit();
   });
 
@@ -945,7 +1066,7 @@
   }
 
   /* ── Verificação automática de versão ── */
-  const APP_VERSION = 11;
+  const APP_VERSION = 12;
 
   async function checkForUpdate() {
     try {
