@@ -375,10 +375,10 @@
     #loginScreen {
       position: fixed; inset: 0; z-index: 999;
       background: #1a1a2e;
-      display: flex; align-items: center; justify-content: center;
+      display: none; align-items: center; justify-content: center;
       padding: 24px;
     }
-    #loginScreen.hidden { display: none; }
+    #loginScreen.visible { display: flex; }
     .login-card {
       width: 100%; max-width: 360px;
       display: flex; flex-direction: column; gap: 14px;
@@ -707,10 +707,10 @@
     } catch {}
   }
 
-  const BUILD_DATETIME = '25/05/2026 13:34';
+  const BUILD_DATETIME = '25/05/2026 13:40';
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v14 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v15 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
@@ -1186,12 +1186,12 @@
     if (session) {
       userId = session.user.id;
       headerUser.textContent = session.user.email;
-      loginScreen.classList.add('hidden');
+      loginScreen.classList.remove('visible');
       loadTranscripts();
     } else {
       userId = null;
       transcripts = [];
-      loginScreen.classList.remove('hidden');
+      loginScreen.classList.add('visible');
       renderHistory();
       updateBuildInfo();
     }
@@ -1250,7 +1250,7 @@
   }
 
   /* ── Verificação automática de versão ── */
-  const APP_VERSION = 14;
+  const APP_VERSION = 15;
 
   async function checkForUpdate() {
     try {
