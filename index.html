@@ -227,13 +227,29 @@
     .hist-empty svg { width: 48px; height: 48px; fill: #2e3e5e; margin-bottom: 12px; display: block; margin-inline: auto; }
 
     .history-item {
-      display: flex; align-items: flex-start; gap: 10px;
-      border-bottom: 1px solid #0f2040; padding: 12px 4px;
-      cursor: pointer; transition: background .15s; border-radius: 10px;
+      position: relative; overflow: hidden;
+      border-bottom: 1px solid #0f2040; border-radius: 10px;
     }
     .history-item:last-child { border-bottom: none; }
-    .history-item:active { background: #0f1a2e; }
-    .history-item.selected { background: #0d1e38; }
+
+    /* Fundo revelado ao arrastar para a esquerda */
+    .h-swipe-bg {
+      position: absolute; right: 0; top: 0; bottom: 0; width: 72px;
+      background: #6c63ff; border-radius: 0 10px 10px 0;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+    }
+    .h-swipe-bg svg { width: 28px; height: 28px; fill: #fff; }
+
+    /* Conteúdo que desliza */
+    .h-inner {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 12px 4px; background: #1a1a2e;
+      cursor: pointer; transition: background .15s;
+      position: relative; z-index: 1;
+    }
+    .history-item:active .h-inner { background: #0f1a2e; }
+    .history-item.selected .h-inner { background: #0d1e38; }
 
     .h-check {
       width: 22px; height: 22px; min-width: 22px; border-radius: 50%;
@@ -691,10 +707,10 @@
     } catch {}
   }
 
-  const BUILD_DATETIME = '21/05/2026 18:29';
+  const BUILD_DATETIME = '25/05/2026 13:34';
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v13 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v14 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
@@ -847,43 +863,110 @@
       const checked = selectedIds.has(item.id);
       const cat     = item.category || 'Geral';
       return `<div class="history-item${checked ? ' selected' : ''}" data-id="${item.id}">
-        <div class="h-check${checked ? ' checked' : ''}"></div>
-        <div class="h-content">
-          <span class="h-cat" style="${catStyle(cat)}">${escHtml(cat)}</span>
-          <div class="history-text">${escHtml(item.text)}</div>
-          <div class="history-time">${item.date} ${item.time}</div>
+        <div class="h-swipe-bg">
+          <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
         </div>
-        <div class="h-actions">
-          <button class="h-act-btn edit" data-id="${item.id}" title="Editar">
-            <svg viewBox="0 0 24 24" fill="#6c63ff"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-          </button>
-          <button class="h-act-btn copy" data-id="${item.id}" title="Copiar">
-            <svg viewBox="0 0 24 24" fill="#607090"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
-          </button>
+        <div class="h-inner">
+          <div class="h-check${checked ? ' checked' : ''}"></div>
+          <div class="h-content">
+            <span class="h-cat" style="${catStyle(cat)}">${escHtml(cat)}</span>
+            <div class="history-text">${escHtml(item.text)}</div>
+            <div class="history-time">${item.date} ${item.time}</div>
+          </div>
+          <div class="h-actions">
+            <button class="h-act-btn edit" data-id="${item.id}" title="Editar">
+              <svg viewBox="0 0 24 24" fill="#6c63ff"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+            </button>
+            <button class="h-act-btn copy" data-id="${item.id}" title="Copiar">
+              <svg viewBox="0 0 24 24" fill="#607090"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
+            </button>
+          </div>
         </div>
       </div>`;
     }).join('');
     updateSelBar();
   }
 
-  /* ── Interação no histórico ── */
-  let pressTimer = null;
+  /* ── Interação no histórico (tap · long-press · swipe) ── */
+  let pressTimer   = null;
+  let swipeState   = null; // { itemEl, hInner, bgEl, startX, startY, id, swiping }
+  let swipeHandled = false;
+
+  function snapBack(hInner, bgEl) {
+    hInner.style.transition = 'transform .2s ease';
+    hInner.style.transform  = '';
+    bgEl.style.transition   = 'opacity .2s';
+    bgEl.style.opacity      = '0';
+  }
 
   historyList.addEventListener('pointerdown', e => {
     const item = e.target.closest('.history-item');
     if (!item) return;
-    pressTimer = setTimeout(() => { pressTimer = null; enterSelecting(); toggleSelect(+item.dataset.id); }, 480);
+    const hInner = item.querySelector('.h-inner');
+    const bgEl   = item.querySelector('.h-swipe-bg');
+    swipeState = { itemEl: item, hInner, bgEl, startX: e.clientX, startY: e.clientY, id: +item.dataset.id, swiping: false };
+
+    pressTimer = setTimeout(() => {
+      pressTimer = null;
+      if (swipeState && !swipeState.swiping) {
+        enterSelecting();
+        toggleSelect(swipeState.id);
+      }
+    }, 480);
   });
-  ['pointerup','pointermove','pointercancel'].forEach(ev =>
-    historyList.addEventListener(ev, () => clearTimeout(pressTimer))
-  );
+
+  historyList.addEventListener('pointermove', e => {
+    if (!swipeState) return;
+    const dx = e.clientX - swipeState.startX;
+    const dy = e.clientY - swipeState.startY;
+
+    if (!swipeState.swiping) {
+      if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy) * 1.5 && dx < 0) {
+        clearTimeout(pressTimer);
+        swipeState.swiping = true;
+        swipeState.hInner.style.transition = 'none';
+        swipeState.bgEl.style.transition   = 'none';
+      } else if (Math.abs(dy) > 10) {
+        clearTimeout(pressTimer);
+        swipeState = null;
+      }
+      return;
+    }
+
+    if (dx < 0) {
+      const tx = Math.max(dx, -80);
+      swipeState.hInner.style.transform = `translateX(${tx}px)`;
+      swipeState.bgEl.style.opacity     = Math.min(1, Math.abs(tx) / 60) + '';
+    }
+  });
+
+  ['pointerup', 'pointercancel'].forEach(ev => {
+    historyList.addEventListener(ev, e => {
+      clearTimeout(pressTimer);
+      if (!swipeState) return;
+      const dx = e.clientX - swipeState.startX;
+      const { hInner, bgEl, id, swiping } = swipeState;
+      swipeState = null;
+
+      if (!swiping) return;
+
+      if (dx < -60) {
+        swipeHandled = true;
+        snapBack(hInner, bgEl);
+        setTimeout(() => { toggleSelect(id); swipeHandled = false; }, 80);
+      } else {
+        snapBack(hInner, bgEl);
+      }
+    });
+  });
 
   historyList.addEventListener('click', e => {
-    // Clique direto no checkbox — seleciona sem precisar do botão "Selecionar"
+    if (swipeHandled) return;
+
     const checkEl = e.target.closest('.h-check');
     if (checkEl) {
       const item = checkEl.closest('.history-item');
-      if (item) { toggleSelect(+item.dataset.id); }
+      if (item) toggleSelect(+item.dataset.id);
       return;
     }
 
@@ -905,7 +988,7 @@
       toggleSelect(id);
     } else {
       const it = transcripts.find(t => t.id === id);
-      if (it) { loadIntoRecorder(it.text); }
+      if (it) loadIntoRecorder(it.text);
     }
   });
 
@@ -1167,7 +1250,7 @@
   }
 
   /* ── Verificação automática de versão ── */
-  const APP_VERSION = 13;
+  const APP_VERSION = 14;
 
   async function checkForUpdate() {
     try {
