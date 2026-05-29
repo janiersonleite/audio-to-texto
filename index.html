@@ -707,10 +707,10 @@
     } catch {}
   }
 
-  const BUILD_DATETIME = '25/05/2026 13:40';
+  const BUILD_DATETIME = '29/05/2026 14:27';
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v15 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v16 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
@@ -761,7 +761,7 @@
     recognition.continuous      = false;
     recognition.interimResults  = true;
 
-    recognition.onstart = () => setRecording(true);
+    recognition.onstart = () => { setRecording(true); showTranscript(''); };
 
     recognition.onresult = (e) => {
       let final = '', interim = '';
@@ -1250,7 +1250,7 @@
   }
 
   /* ── Verificação automática de versão ── */
-  const APP_VERSION = 15;
+  const APP_VERSION = 16;
 
   async function checkForUpdate() {
     try {
