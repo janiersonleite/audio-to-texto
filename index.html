@@ -432,6 +432,32 @@
     #logoutBtn:active { background: #16213e; }
     .header-user { font-size: 11px; color: #4a5a7a; }
 
+    /* ══ LEMBRETE POR NOTA ══ */
+    .note-reminder {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 10px; padding-top: 10px;
+      border-top: 1px solid #1a2a4a;
+    }
+    .note-reminder-toggle {
+      display: flex; align-items: center; gap: 5px;
+      background: none; border: 1px solid #2a3a5e;
+      border-radius: 20px; padding: 5px 12px;
+      font-size: 12px; font-weight: 600; color: #6a7a9a;
+      cursor: pointer; transition: all .15s; white-space: nowrap;
+    }
+    .note-reminder-toggle.active {
+      background: #1a1040; border-color: #6c63ff; color: #a78bfa;
+    }
+    .note-reminder-time {
+      flex: 1; padding: 6px 10px;
+      background: #0f3460; border: 1px solid #1a4a7a;
+      border-radius: 8px; color: #e0e6f0; font-size: 13px;
+      outline: none; font-family: inherit; display: none;
+    }
+    .note-reminder-time.visible { display: block; }
+    .note-reminder-time:focus { border-color: #6c63ff; }
+    .reminder-badge { color: #a78bfa; font-size: 10px; font-weight: 700; }
+
     /* ── Botão configurações ── */
     #settingsBtn {
       background: none; border: none; color: #4a5a7a;
@@ -589,6 +615,10 @@
       </div>
       <div id="transcriptBox" class="empty">O texto transcrito aparecerá aqui...</div>
       <button class="clear-btn" id="clearBtn" style="display:none">Limpar</button>
+      <div class="note-reminder" id="recorderReminder" style="display:none">
+        <button class="note-reminder-toggle" id="reminderToggleBtn">⏰ Adicionar lembrete</button>
+        <input type="time" class="note-reminder-time" id="reminderTimeInput" />
+      </div>
     </div>
   </div>
 
@@ -622,6 +652,10 @@
     <div class="modal-new-cat">
       <input type="text" id="newCatInput" placeholder="Nova categoria…" maxlength="30" />
       <button id="newCatBtn">+</button>
+    </div>
+    <div class="note-reminder">
+      <button class="note-reminder-toggle" id="editReminderToggle">⏰ Adicionar lembrete</button>
+      <input type="time" class="note-reminder-time" id="editReminderTime" />
     </div>
     <div class="modal-btns">
       <button class="modal-btn secondary" id="editCancel">Cancelar</button>
@@ -796,10 +830,10 @@
     } catch {}
   }
 
-  const BUILD_DATETIME = '17/07/2026 00:00';
+  const BUILD_DATETIME = '17/07/2026 12:00';
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v17 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v18 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
@@ -819,24 +853,39 @@
     statusLabel.textContent = state ? 'Ouvindo... fale agora' : 'Toque para gravar';
   }
 
+  function resetReminderUI() {
+    const btn   = document.getElementById('reminderToggleBtn');
+    const input = document.getElementById('reminderTimeInput');
+    btn.classList.remove('active');
+    btn.textContent = '⏰ Adicionar lembrete';
+    input.classList.remove('visible');
+    input.value = '';
+  }
+
   function showTranscript(text) {
     fullText = text;
     transcriptBox.textContent = text || 'O texto transcrito aparecerá aqui...';
     transcriptBox.classList.toggle('empty', !text);
     copyBtn.style.display  = text ? '' : 'none';
     clearBtn.style.display = text ? '' : 'none';
+    document.getElementById('recorderReminder').style.display = text ? '' : 'none';
+    if (!text) resetReminderUI();
     if (text) addTranscript(text);
   }
 
   function addTranscript(text) {
-    const now = new Date();
+    const now         = new Date();
+    const reminderVal = document.getElementById('reminderTimeInput').value || null;
     transcripts.unshift({
-      id:       Date.now(),
+      id:            Date.now(),
       text,
-      category: 'Geral',
+      category:      'Geral',
       time: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       date: now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }),
+      reminder_time: reminderVal,
+      reminder_sent: false,
     });
+    resetReminderUI();
     saveTranscripts();
     renderHistory();
   }
@@ -878,6 +927,24 @@
 
   copyBtn.addEventListener('click', () => copyText(fullText));
   clearBtn.addEventListener('click', () => showTranscript(''));
+
+  document.getElementById('reminderToggleBtn').addEventListener('click', () => {
+    const btn   = document.getElementById('reminderToggleBtn');
+    const input = document.getElementById('reminderTimeInput');
+    const active = btn.classList.toggle('active');
+    input.classList.toggle('visible', active);
+    btn.textContent = active ? '⏰ Lembrete ativo' : '⏰ Adicionar lembrete';
+    if (active) input.focus(); else input.value = '';
+  });
+
+  document.getElementById('editReminderToggle').addEventListener('click', () => {
+    const btn   = document.getElementById('editReminderToggle');
+    const input = document.getElementById('editReminderTime');
+    const active = btn.classList.toggle('active');
+    input.classList.toggle('visible', active);
+    btn.textContent = active ? '⏰ Lembrete ativo' : '⏰ Adicionar lembrete';
+    if (active) input.focus(); else input.value = '';
+  });
 
   /* ── Categorias ── */
   const CAT_PALETTE = [
@@ -960,7 +1027,7 @@
           <div class="h-content">
             <span class="h-cat" style="${catStyle(cat)}">${escHtml(cat)}</span>
             <div class="history-text">${escHtml(item.text)}</div>
-            <div class="history-time">${item.date} ${item.time}</div>
+            <div class="history-time">${item.date} ${item.time}${item.reminder_time && !item.reminder_sent ? ` <span class="reminder-badge">⏰ ${item.reminder_time}</span>` : ''}</div>
           </div>
           <div class="h-actions">
             <button class="h-act-btn edit" data-id="${item.id}" title="Editar">
@@ -1214,8 +1281,16 @@
     if (!item) return;
     editingId       = id;
     editingCategory = item.category || 'Geral';
-    editTextarea.value = item.text;
+    editTextarea.value   = item.text;
     editMeta.textContent = `${item.date} às ${item.time}`;
+    // Preenche lembrete
+    const rBtn   = document.getElementById('editReminderToggle');
+    const rInput = document.getElementById('editReminderTime');
+    const hasReminder = item.reminder_time && !item.reminder_sent;
+    rBtn.classList.toggle('active', hasReminder);
+    rBtn.textContent = hasReminder ? '⏰ Lembrete ativo' : '⏰ Adicionar lembrete';
+    rInput.classList.toggle('visible', hasReminder);
+    rInput.value = hasReminder ? item.reminder_time : '';
     renderEditCatChips();
     editModal.classList.add('open');
     setTimeout(() => editTextarea.focus(), 50);
@@ -1227,8 +1302,11 @@
     if (!text) { showToast('O texto não pode estar vazio'); return; }
     const item = transcripts.find(t => t.id === editingId);
     if (item) {
-      item.text     = text;
-      item.category = editingCategory;
+      item.text          = text;
+      item.category      = editingCategory;
+      const rTime        = document.getElementById('editReminderTime').value;
+      item.reminder_time = rTime || null;
+      item.reminder_sent = false;
       saveTranscripts(); renderHistory(); showToast('Salvo!');
     }
     closeEdit();
@@ -1401,7 +1479,7 @@
   }
 
   /* ── Verificação automática de versão ── */
-  const APP_VERSION = 17;
+  const APP_VERSION = 18;
 
   async function checkForUpdate() {
     try {
