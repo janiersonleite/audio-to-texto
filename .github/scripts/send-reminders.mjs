@@ -1,9 +1,12 @@
-// Hora atual em Brasília (UTC-3)
+// Hora e data atuais em Brasília (UTC-3)
 const now = new Date();
-const brazilHour   = ((now.getUTCHours() - 3) + 24) % 24;
-const brazilMinute = now.getUTCMinutes();
+const brazilMs   = now.getTime() - 3 * 60 * 60 * 1000;
+const brazilNow  = new Date(brazilMs);
+const brazilHour   = brazilNow.getUTCHours();
+const brazilMinute = brazilNow.getUTCMinutes();
 const brazilHHMM   = `${String(brazilHour).padStart(2,'0')}:${String(brazilMinute).padStart(2,'0')}`;
-console.log(`Hora em Brasília: ${brazilHHMM} (UTC: ${now.getUTCHours()}h)`);
+const brazilDate   = brazilNow.toISOString().split('T')[0]; // YYYY-MM-DD
+console.log(`Hora em Brasília: ${brazilHHMM} ${brazilDate} (UTC: ${now.getUTCHours()}h)`);
 
 // Retorna true se o lembrete (HH:MM) está dentro dos últimos 5 minutos
 function dentroJanela(reminderHHMM) {
@@ -85,6 +88,7 @@ for (const user of allUsers) {
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     if (!item.reminder_time || item.reminder_sent) continue;
+    if (item.reminder_date && item.reminder_date !== brazilDate) continue;
     if (dentroJanela(item.reminder_time)) pendingIndexes.push(i);
   }
 
