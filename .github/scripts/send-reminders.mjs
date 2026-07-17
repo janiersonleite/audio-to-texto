@@ -1,8 +1,9 @@
 // Hora atual em Brasília (UTC-3)
 const now = new Date();
-const brazilHour = ((now.getUTCHours() - 3) + 24) % 24;
+const brazilHour   = ((now.getUTCHours() - 3) + 24) % 24;
 const brazilMinute = now.getUTCMinutes();
-console.log(`Hora em Brasília: ${brazilHour}:${String(brazilMinute).padStart(2,'0')} (UTC: ${now.getUTCHours()}h)`);
+const brazilHHMM   = `${String(brazilHour).padStart(2,'0')}:${String(brazilMinute).padStart(2,'0')}`;
+console.log(`Hora em Brasília: ${brazilHHMM} (UTC: ${now.getUTCHours()}h)`);
 
 const headers = {
   'apikey':        process.env.SUPABASE_SERVICE_KEY,
@@ -30,8 +31,7 @@ console.log(`${globalUsers.length} usuário(s) com lembrete diário ativo`);
 let enviados = 0;
 
 for (const user of globalUsers) {
-  const horaConfigurada = parseInt(user.reminder_time.substring(0, 2), 10);
-  if (horaConfigurada !== brazilHour) continue;
+  if (user.reminder_time !== brazilHHMM) continue;
 
   const tgRes = await fetch(
     `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
@@ -77,9 +77,7 @@ for (const user of allUsers) {
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     if (!item.reminder_time || item.reminder_sent) continue;
-    // Compara apenas a hora (HH), ignora minutos — dispara na hora exata
-    const reminderHour = parseInt(item.reminder_time.substring(0, 2), 10);
-    if (reminderHour === brazilHour) pendingIndexes.push(i);
+    if (item.reminder_time === brazilHHMM) pendingIndexes.push(i);
   }
 
   if (pendingIndexes.length === 0) continue;

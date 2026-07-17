@@ -2,7 +2,7 @@ name: Send Reminders
 
 on:
   schedule:
-    - cron: '0 * * * *'  # toda hora, no :00 UTC
+    - cron: '* * * * *'  # a cada minuto
   workflow_dispatch:      # permite disparo manual para testes
 
 jobs:
