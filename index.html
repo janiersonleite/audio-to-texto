@@ -618,7 +618,7 @@
       <div class="note-reminder" id="recorderReminder" style="display:none">
         <button class="note-reminder-toggle" id="reminderToggleBtn">⏰ Adicionar lembrete</button>
         <input type="date" class="note-reminder-time" id="reminderDateInput" />
-        <input type="time" class="note-reminder-time" id="reminderTimeInput" />
+        <input type="text" class="note-reminder-time" id="reminderTimeInput" placeholder="HH:MM" inputmode="numeric" maxlength="5" />
       </div>
     </div>
   </div>
@@ -657,7 +657,7 @@
     <div class="note-reminder">
       <button class="note-reminder-toggle" id="editReminderToggle">⏰ Adicionar lembrete</button>
       <input type="date" class="note-reminder-time" id="editReminderDate" />
-      <input type="time" class="note-reminder-time" id="editReminderTime" />
+      <input type="text" class="note-reminder-time" id="editReminderTime" placeholder="HH:MM" inputmode="numeric" maxlength="5" />
     </div>
     <div class="modal-btns">
       <button class="modal-btn secondary" id="editCancel">Cancelar</button>
@@ -832,10 +832,10 @@
     } catch {}
   }
 
-  const BUILD_DATETIME = '17/07/2026 18:00';
+  const BUILD_DATETIME = '17/07/2026 19:00';
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v19 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v20 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
@@ -968,6 +968,17 @@
       timeInput.value = '';
     }
   });
+
+  /* ── Máscara HH:MM para campos de hora ── */
+  function applyTimeMask(input) {
+    input.addEventListener('input', e => {
+      let v = e.target.value.replace(/\D/g, '').slice(0, 4);
+      if (v.length >= 3) v = v.slice(0, 2) + ':' + v.slice(2);
+      e.target.value = v;
+    });
+  }
+  applyTimeMask(document.getElementById('reminderTimeInput'));
+  applyTimeMask(document.getElementById('editReminderTime'));
 
   /* ── Categorias ── */
   const CAT_PALETTE = [
@@ -1507,7 +1518,7 @@
   }
 
   /* ── Verificação automática de versão ── */
-  const APP_VERSION = 19;
+  const APP_VERSION = 20;
 
   async function checkForUpdate() {
     try {
