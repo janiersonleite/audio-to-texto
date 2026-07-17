@@ -832,10 +832,10 @@
     } catch {}
   }
 
-  const BUILD_DATETIME = '17/07/2026 19:00';
+  const BUILD_DATETIME = '17/07/2026 20:00';
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v20 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v21 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
@@ -878,21 +878,34 @@
     if (text) addTranscript(text);
   }
 
+  let lastAddedId = null;
+
   function addTranscript(text) {
-    const now          = new Date();
-    const reminderTime = document.getElementById('reminderTimeInput').value || null;
-    const reminderDate = document.getElementById('reminderDateInput').value || null;
+    const now = new Date();
+    const id  = Date.now();
+    lastAddedId = id;
     transcripts.unshift({
-      id:            Date.now(),
+      id,
       text,
       category:      'Geral',
       time: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       date: now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }),
-      reminder_time: reminderTime,
-      reminder_date: reminderDate,
+      reminder_time: null,
+      reminder_date: null,
       reminder_sent: false,
     });
     resetReminderUI();
+    saveTranscripts();
+    renderHistory();
+  }
+
+  function updateRecorderReminder() {
+    if (!lastAddedId) return;
+    const item = transcripts.find(t => t.id === lastAddedId);
+    if (!item) return;
+    item.reminder_time = document.getElementById('reminderTimeInput').value || null;
+    item.reminder_date = document.getElementById('reminderDateInput').value || null;
+    item.reminder_sent = false;
     saveTranscripts();
     renderHistory();
   }
@@ -949,6 +962,7 @@
     } else {
       dateInput.value = '';
       timeInput.value = '';
+      updateRecorderReminder(); // limpa o lembrete do item salvo
     }
   });
 
@@ -979,6 +993,10 @@
   }
   applyTimeMask(document.getElementById('reminderTimeInput'));
   applyTimeMask(document.getElementById('editReminderTime'));
+
+  // Atualiza o lembrete no item salvo quando o usuário preenche os campos no gravador
+  document.getElementById('reminderTimeInput').addEventListener('blur', updateRecorderReminder);
+  document.getElementById('reminderDateInput').addEventListener('change', updateRecorderReminder);
 
   /* ── Categorias ── */
   const CAT_PALETTE = [
@@ -1518,7 +1536,7 @@
   }
 
   /* ── Verificação automática de versão ── */
-  const APP_VERSION = 20;
+  const APP_VERSION = 21;
 
   async function checkForUpdate() {
     try {
