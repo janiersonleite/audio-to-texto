@@ -5,6 +5,15 @@ const brazilMinute = now.getUTCMinutes();
 const brazilHHMM   = `${String(brazilHour).padStart(2,'0')}:${String(brazilMinute).padStart(2,'0')}`;
 console.log(`Hora em Brasília: ${brazilHHMM} (UTC: ${now.getUTCHours()}h)`);
 
+// Retorna true se o lembrete (HH:MM) está dentro dos últimos 5 minutos
+function dentroJanela(reminderHHMM) {
+  const [rH, rM] = reminderHHMM.split(':').map(Number);
+  const atual    = brazilHour * 60 + brazilMinute;
+  const lembrete = rH * 60 + rM;
+  const diff     = (atual - lembrete + 1440) % 1440; // lida com virada de meia-noite
+  return diff < 5;
+}
+
 const headers = {
   'apikey':        process.env.SUPABASE_SERVICE_KEY,
   'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
@@ -31,7 +40,7 @@ console.log(`${globalUsers.length} usuário(s) com lembrete diário ativo`);
 let enviados = 0;
 
 for (const user of globalUsers) {
-  if (user.reminder_time !== brazilHHMM) continue;
+  if (!dentroJanela(user.reminder_time)) continue;
 
   const tgRes = await fetch(
     `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
@@ -67,7 +76,6 @@ if (!notesRes.ok) {
 }
 
 const allUsers = await notesRes.json();
-const currentHHMM = `${String(brazilHour).padStart(2,'0')}:${String(brazilMinute).padStart(2,'0')}`;
 
 for (const user of allUsers) {
   if (!user.telegram_chat_id) continue;
@@ -77,7 +85,7 @@ for (const user of allUsers) {
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     if (!item.reminder_time || item.reminder_sent) continue;
-    if (item.reminder_time === brazilHHMM) pendingIndexes.push(i);
+    if (dentroJanela(item.reminder_time)) pendingIndexes.push(i);
   }
 
   if (pendingIndexes.length === 0) continue;
@@ -110,7 +118,6 @@ for (const user of allUsers) {
     }
   }
 
-  // Marca reminder_sent = true nas notas enviadas
   const patchRes = await fetch(
     `${process.env.SUPABASE_URL}/rest/v1/user_data?user_id=eq.${user.user_id}`,
     {
