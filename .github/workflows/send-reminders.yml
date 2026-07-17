@@ -1,0 +1,19 @@
+name: Send Reminders
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # toda hora, no :00 UTC
+  workflow_dispatch:      # permite disparo manual para testes
+
+jobs:
+  send-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enviar lembretes via Telegram
+        run: node .github/scripts/send-reminders.mjs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
