@@ -24,50 +24,7 @@ const headers = {
   'Prefer':        'return=minimal',
 };
 
-// ── 1. Lembrete diário global ─────────────────────────────────────────────
-const globalUrl = `${process.env.SUPABASE_URL}/rest/v1/user_data`
-  + `?select=user_id,telegram_chat_id,reminder_time`
-  + `&reminder_enabled=eq.true`
-  + `&telegram_chat_id=not.is.null`
-  + `&reminder_time=not.is.null`;
-
-const globalRes = await fetch(globalUrl, { headers });
-if (!globalRes.ok) {
-  console.error('Erro ao consultar Supabase (global):', await globalRes.text());
-  process.exit(1);
-}
-
-const globalUsers = await globalRes.json();
-console.log(`${globalUsers.length} usuário(s) com lembrete diário ativo`);
-
-let enviados = 0;
-
-for (const user of globalUsers) {
-  if (!dentroJanela(user.reminder_time)) continue;
-
-  const tgRes = await fetch(
-    `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id:    user.telegram_chat_id,
-        text:       '🎙 *Lembrete — Áudio → Texto*\n\nHora de registrar suas anotações de voz!\n\n👉 https://janiersonleite.github.io/audio-to-texto/',
-        parse_mode: 'Markdown',
-      }),
-    }
-  );
-
-  const tgData = await tgRes.json();
-  if (tgRes.ok) {
-    enviados++;
-    console.log(`✓ Lembrete diário enviado para ${user.user_id}`);
-  } else {
-    console.error(`✗ Falha (diário) para ${user.user_id}:`, tgData.description);
-  }
-}
-
-// ── 2. Lembretes por nota ─────────────────────────────────────────────────
+// ── Lembretes por nota ───────────────────────────────────────────────────
 const notesUrl = `${process.env.SUPABASE_URL}/rest/v1/user_data`
   + `?select=user_id,telegram_chat_id,items`
   + `&telegram_chat_id=not.is.null`;
@@ -79,6 +36,7 @@ if (!notesRes.ok) {
 }
 
 const allUsers = await notesRes.json();
+let enviados = 0;
 
 for (const user of allUsers) {
   if (!user.telegram_chat_id) continue;
