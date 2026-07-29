@@ -457,6 +457,7 @@
     .note-reminder-time.visible { display: block; }
     .note-reminder-time:focus { border-color: #6c63ff; }
     .reminder-badge { color: #a78bfa; font-size: 10px; font-weight: 700; }
+    .reminder-badge.sent { color: #34d399; opacity: 0.7; }
 
     .toggle-switch {
       position: relative; width: 46px; height: 26px; flex-shrink: 0;
@@ -763,10 +764,10 @@
     } catch {}
   }
 
-  const BUILD_DATETIME = '20/07/2026 00:00';
+  const BUILD_DATETIME = '29/07/2026 00:00';
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v22 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v23 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
@@ -950,9 +951,10 @@
     const cats = ['Todas', ...getCategories()];
     const el = document.getElementById('catFilter');
     el.style.display = transcripts.length ? '' : 'none';
+    const hasReminders = transcripts.some(t => t.reminder_time);
     el.innerHTML = cats.map(c =>
       `<button class="cat-chip${activeCategory===c?' active':''}" data-cat="${escHtml(c)}">${escHtml(c)}</button>`
-    ).join('');
+    ).join('') + (hasReminders ? `<button class="cat-chip${activeCategory==='__lembretes__'?' active':''}" data-cat="__lembretes__">🔔 Lembretes</button>` : '');
   }
 
   document.getElementById('catFilter').addEventListener('click', e => {
@@ -991,16 +993,31 @@
     histEmpty.style.display   = empty ? '' : 'none';
     renderCategoryFilter();
 
-    const filtered = activeCategory === 'Todas'
-      ? transcripts
-      : transcripts.filter(t => (t.category || 'Geral') === activeCategory);
+    const isLembretes = activeCategory === '__lembretes__';
+    const filtered = isLembretes
+      ? [...transcripts].filter(t => t.reminder_time).sort((a, b) => {
+          if (!a.reminder_sent && b.reminder_sent) return -1;
+          if (a.reminder_sent && !b.reminder_sent) return 1;
+          const aKey = (a.reminder_date || '9999') + (a.reminder_time || '');
+          const bKey = (b.reminder_date || '9999') + (b.reminder_time || '');
+          return a.reminder_sent ? bKey.localeCompare(aKey) : aKey.localeCompare(bKey);
+        })
+      : activeCategory === 'Todas'
+        ? transcripts
+        : transcripts.filter(t => (t.category || 'Geral') === activeCategory);
 
     historyList.style.display = filtered.length ? '' : 'none';
     if (empty) return;
 
     historyList.innerHTML = filtered.map(item => {
-      const checked = selectedIds.has(item.id);
-      const cat     = item.category || 'Geral';
+      const checked  = selectedIds.has(item.id);
+      const cat      = item.category || 'Geral';
+      const rDateStr = item.reminder_date ? item.reminder_date.split('-').slice(1).reverse().join('/') + ' ' : '';
+      const reminderBadge = item.reminder_time
+        ? (item.reminder_sent
+          ? (isLembretes ? ` <span class="reminder-badge sent">✓ ${rDateStr}${item.reminder_time}</span>` : '')
+          : ` <span class="reminder-badge">⏰ ${rDateStr}${item.reminder_time}</span>`)
+        : '';
       return `<div class="history-item${checked ? ' selected' : ''}" data-id="${item.id}">
         <div class="h-swipe-bg">
           <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
@@ -1010,7 +1027,7 @@
           <div class="h-content">
             <span class="h-cat" style="${catStyle(cat)}">${escHtml(cat)}</span>
             <div class="history-text">${escHtml(item.text)}</div>
-            <div class="history-time">${item.date} ${item.time}${item.reminder_time && !item.reminder_sent ? ` <span class="reminder-badge">⏰ ${item.reminder_date ? item.reminder_date.split('-').slice(1).reverse().join('/') + ' ' : ''}${item.reminder_time}</span>` : ''}</div>
+            <div class="history-time">${item.date} ${item.time}${reminderBadge}</div>
           </div>
           <div class="h-actions">
             <button class="h-act-btn edit" data-id="${item.id}" title="Editar">
@@ -1406,7 +1423,7 @@
   }
 
   /* ── Verificação automática de versão ── */
-  const APP_VERSION = 22;
+  const APP_VERSION = 23;
 
   async function checkForUpdate() {
     try {
