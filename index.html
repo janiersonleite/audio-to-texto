@@ -1287,9 +1287,11 @@
     const rBtn       = document.getElementById('editReminderToggle');
     const rDateInput = document.getElementById('editReminderDate');
     const rTimeInput = document.getElementById('editReminderTime');
-    const hasReminder = item.reminder_time && !item.reminder_sent;
+    const hasReminder = !!item.reminder_time;
     rBtn.classList.toggle('active', hasReminder);
-    rBtn.textContent = hasReminder ? '⏰ Lembrete ativo' : '⏰ Adicionar lembrete';
+    rBtn.textContent = hasReminder
+      ? (item.reminder_sent ? '⏰ Lembrete enviado (reagendar?)' : '⏰ Lembrete ativo')
+      : '⏰ Adicionar lembrete';
     rDateInput.classList.toggle('visible', hasReminder);
     rTimeInput.classList.toggle('visible', hasReminder);
     rDateInput.value = hasReminder && item.reminder_date ? item.reminder_date : new Date().toISOString().split('T')[0];
