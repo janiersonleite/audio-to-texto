@@ -287,6 +287,17 @@
     .h-act-btn.edit svg { fill: #6c63ff; }
     .h-act-btn.copy svg { fill: #607090; }
 
+    .h-drag-handle {
+      width: 20px; min-width: 20px; cursor: grab;
+      display: flex; align-items: center; padding: 2px;
+      touch-action: none; -webkit-user-select: none; user-select: none;
+    }
+    .h-drag-handle svg { width: 14px; height: 14px; display: block; fill: #353560; }
+    body.selecting .h-drag-handle { display: none; }
+    .history-item.dragging { opacity: 0.4; }
+    .history-item.drag-above { border-top: 2px solid #6c63ff; }
+    .history-item.drag-below { border-bottom: 2px solid #6c63ff; }
+
     /* ══ CATEGORIAS ══ */
     .cat-filter {
       display: flex; gap: 8px; overflow-x: auto;
@@ -764,10 +775,10 @@
     } catch {}
   }
 
-  const BUILD_DATETIME = '29/07/2026 00:00';
+  const BUILD_DATETIME = '19/08/2026 00:00';
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v23 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v24 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
@@ -1023,6 +1034,7 @@
           <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
         </div>
         <div class="h-inner">
+          ${!isLembretes ? `<div class="h-drag-handle" title="Reordenar"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="1.5"/><circle cx="15" cy="7" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="17" r="1.5"/><circle cx="15" cy="17" r="1.5"/></svg></div>` : ''}
           <div class="h-check${checked ? ' checked' : ''}"></div>
           <div class="h-content">
             <span class="h-cat" style="${catStyle(cat)}">${escHtml(cat)}</span>
@@ -1114,6 +1126,73 @@
         snapBack(hInner, bgEl);
       }
     });
+  });
+
+  /* ── Drag para reordenar ── */
+  let dragState = null;
+
+  historyList.addEventListener('pointerdown', e => {
+    const handle = e.target.closest('.h-drag-handle');
+    if (!handle) return;
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    handle.setPointerCapture(e.pointerId);
+    const itemEl = handle.closest('.history-item');
+    if (!itemEl) return;
+    itemEl.classList.add('dragging');
+    dragState = { sourceId: +itemEl.dataset.id, sourceEl: itemEl, overEl: null, insertBefore: true };
+  }, { capture: true, passive: false });
+
+  historyList.addEventListener('pointermove', e => {
+    if (!dragState) return;
+    e.preventDefault();
+    const items = [...historyList.querySelectorAll('.history-item:not(.dragging)')];
+    let target = null, before = true;
+    for (const el of items) {
+      const r = el.getBoundingClientRect();
+      if (e.clientY >= r.top && e.clientY <= r.bottom) {
+        target = el;
+        before = e.clientY < r.top + r.height / 2;
+        break;
+      }
+    }
+    historyList.querySelectorAll('.drag-above,.drag-below').forEach(el =>
+      el.classList.remove('drag-above', 'drag-below')
+    );
+    if (target) target.classList.add(before ? 'drag-above' : 'drag-below');
+    dragState.overEl = target;
+    dragState.insertBefore = before;
+  }, { passive: false });
+
+  const finishDrag = () => {
+    if (!dragState) return;
+    const { sourceId, sourceEl, overEl, insertBefore } = dragState;
+    dragState = null;
+    sourceEl.classList.remove('dragging');
+    historyList.querySelectorAll('.drag-above,.drag-below').forEach(el =>
+      el.classList.remove('drag-above', 'drag-below')
+    );
+    if (!overEl) return;
+    const targetId = +overEl.dataset.id;
+    if (sourceId === targetId) return;
+    const srcIdx = transcripts.findIndex(t => t.id === sourceId);
+    const tgtIdx = transcripts.findIndex(t => t.id === targetId);
+    if (srcIdx === -1 || tgtIdx === -1) return;
+    const [item] = transcripts.splice(srcIdx, 1);
+    const newTgt = transcripts.findIndex(t => t.id === targetId);
+    transcripts.splice(insertBefore ? newTgt : newTgt + 1, 0, item);
+    saveTranscripts();
+    renderHistory();
+  };
+
+  historyList.addEventListener('pointerup', finishDrag);
+  historyList.addEventListener('pointercancel', () => {
+    if (!dragState) return;
+    dragState.sourceEl.classList.remove('dragging');
+    historyList.querySelectorAll('.drag-above,.drag-below').forEach(el =>
+      el.classList.remove('drag-above', 'drag-below')
+    );
+    dragState = null;
   });
 
   historyList.addEventListener('click', e => {
@@ -1425,7 +1504,7 @@
   }
 
   /* ── Verificação automática de versão ── */
-  const APP_VERSION = 23;
+  const APP_VERSION = 24;
 
   async function checkForUpdate() {
     try {
