@@ -1034,7 +1034,6 @@
           <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
         </div>
         <div class="h-inner">
-          ${!isLembretes ? `<div class="h-drag-handle" title="Reordenar"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="1.5"/><circle cx="15" cy="7" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="17" r="1.5"/><circle cx="15" cy="17" r="1.5"/></svg></div>` : ''}
           <div class="h-check${checked ? ' checked' : ''}"></div>
           <div class="h-content">
             <span class="h-cat" style="${catStyle(cat)}">${escHtml(cat)}</span>
@@ -1049,6 +1048,7 @@
               <svg viewBox="0 0 24 24" fill="#607090"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
             </button>
           </div>
+          ${!isLembretes ? `<div class="h-drag-handle" title="Reordenar"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="1.5"/><circle cx="15" cy="7" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="17" r="1.5"/><circle cx="15" cy="17" r="1.5"/></svg></div>` : ''}
         </div>
       </div>`;
     }).join('');
@@ -1143,28 +1143,64 @@
     dragState = { sourceId: +itemEl.dataset.id, sourceEl: itemEl, overEl: null, insertBefore: true };
   }, { capture: true, passive: false });
 
-  historyList.addEventListener('pointermove', e => {
+  const dragPanel = historyList.closest('.panel');
+  let lastDragY  = 0;
+  let scrollRAF  = null;
+
+  function stopAutoScroll() {
+    if (scrollRAF) { cancelAnimationFrame(scrollRAF); scrollRAF = null; }
+  }
+
+  function updateDragTarget(clientY) {
     if (!dragState) return;
-    e.preventDefault();
     const items = [...historyList.querySelectorAll('.history-item:not(.dragging)')];
     let target = null, before = true;
     for (const el of items) {
       const r = el.getBoundingClientRect();
-      if (e.clientY >= r.top && e.clientY <= r.bottom) {
-        target = el;
-        before = e.clientY < r.top + r.height / 2;
-        break;
+      if (clientY >= r.top && clientY <= r.bottom) {
+        target = el; before = clientY < r.top + r.height / 2; break;
       }
     }
     historyList.querySelectorAll('.drag-above,.drag-below').forEach(el =>
       el.classList.remove('drag-above', 'drag-below')
     );
     if (target) target.classList.add(before ? 'drag-above' : 'drag-below');
-    dragState.overEl = target;
+    dragState.overEl      = target;
     dragState.insertBefore = before;
+  }
+
+  historyList.addEventListener('pointermove', e => {
+    if (!dragState) return;
+    e.preventDefault();
+    lastDragY = e.clientY;
+    updateDragTarget(e.clientY);
+
+    stopAutoScroll();
+    const pr   = dragPanel.getBoundingClientRect();
+    const edge = 80;
+    if (e.clientY < pr.top + edge) {
+      const speed = Math.ceil((pr.top + edge - e.clientY) / 10);
+      const step = () => {
+        if (!dragState) { scrollRAF = null; return; }
+        dragPanel.scrollTop -= speed;
+        updateDragTarget(lastDragY);
+        scrollRAF = requestAnimationFrame(step);
+      };
+      scrollRAF = requestAnimationFrame(step);
+    } else if (e.clientY > pr.bottom - edge) {
+      const speed = Math.ceil((e.clientY - (pr.bottom - edge)) / 10);
+      const step = () => {
+        if (!dragState) { scrollRAF = null; return; }
+        dragPanel.scrollTop += speed;
+        updateDragTarget(lastDragY);
+        scrollRAF = requestAnimationFrame(step);
+      };
+      scrollRAF = requestAnimationFrame(step);
+    }
   }, { passive: false });
 
   const finishDrag = () => {
+    stopAutoScroll();
     if (!dragState) return;
     const { sourceId, sourceEl, overEl, insertBefore } = dragState;
     dragState = null;
@@ -1187,6 +1223,7 @@
 
   historyList.addEventListener('pointerup', finishDrag);
   historyList.addEventListener('pointercancel', () => {
+    stopAutoScroll();
     if (!dragState) return;
     dragState.sourceEl.classList.remove('dragging');
     historyList.querySelectorAll('.drag-above,.drag-below').forEach(el =>
