@@ -187,6 +187,31 @@
     #recordBtn svg { width: 44px; height: 44px; fill: #fff; }
     #statusLabel { margin-top: 16px; font-size: 14px; color: #a0a8c0; }
 
+    .mode-toggle {
+      display: flex; gap: 8px; justify-content: center; margin-bottom: 16px;
+    }
+    .mode-btn {
+      flex: 1; padding: 10px; border: none; border-radius: 10px;
+      background: #0f1a2e; color: #a0a8c0; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background .2s, color .2s;
+    }
+    .mode-btn.active { background: #6c63ff; color: #fff; }
+
+    .text-input-section { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+    #textInput {
+      background: #0f1a2e; border: 1.5px solid #1e2a45; border-radius: 12px;
+      color: #e0e6f0; padding: 14px; font-size: 15px; font-family: inherit;
+      resize: none; outline: none; min-height: 120px; line-height: 1.6;
+    }
+    #textInput:focus { border-color: #6c63ff; }
+    #textInput::placeholder { color: #4a5068; }
+    .save-text-btn {
+      background: #6c63ff; color: #fff; border: none; border-radius: 10px;
+      padding: 13px; font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: background .2s;
+    }
+    .save-text-btn:active { background: #5a52d5; }
+
     /* Card transcrição */
     .card { background: #16213e; border-radius: 14px; padding: 14px; margin-bottom: 12px; }
     .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -571,7 +596,12 @@
       <strong>Use o Chrome no Android</strong> para que funcione corretamente.
     </div>
 
-    <section class="record-section">
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="modeVoiceBtn">🎤 Voz</button>
+      <button class="mode-btn" id="modeTextBtn">✏️ Texto</button>
+    </div>
+
+    <section class="record-section" id="recordSection">
       <div class="pulse-ring" id="pulseRing"></div>
       <button id="recordBtn" aria-label="Gravar">
         <svg id="iconMic" viewBox="0 0 24 24"><path d="M12 1a3.5 3.5 0 0 0-3.5 3.5v7a3.5 3.5 0 0 0 7 0v-7A3.5 3.5 0 0 0 12 1zm-1.5 3.5a1.5 1.5 0 0 1 3 0v7a1.5 1.5 0 0 1-3 0v-7zM5 11a1 1 0 0 1 2 0 5 5 0 0 0 10 0 1 1 0 1 1 2 0 7 7 0 0 1-6 6.92V20h2a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2h2v-2.08A7 7 0 0 1 5 11z"/></svg>
@@ -580,9 +610,14 @@
       <p id="statusLabel">Toque para gravar</p>
     </section>
 
+    <div class="text-input-section" id="textInputSection" style="display:none">
+      <textarea id="textInput" placeholder="Digite sua nota aqui..." rows="5"></textarea>
+      <button class="save-text-btn" id="textSaveBtn">Salvar nota</button>
+    </div>
+
     <div class="card">
       <div class="card-header">
-        <span class="card-title">Transcrição</span>
+        <span class="card-title" id="cardTitle">Transcrição</span>
         <button class="icon-btn" id="copyBtn" style="display:none">
           <svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
         </button>
@@ -778,7 +813,7 @@
   const BUILD_DATETIME = '19/08/2026 00:00';
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v24 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v25 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
@@ -890,6 +925,50 @@
 
   copyBtn.addEventListener('click', () => copyText(fullText));
   clearBtn.addEventListener('click', () => showTranscript(''));
+
+  /* ── Modo texto / voz ── */
+  const modeVoiceBtn     = document.getElementById('modeVoiceBtn');
+  const modeTextBtn      = document.getElementById('modeTextBtn');
+  const recordSection    = document.getElementById('recordSection');
+  const textInputSection = document.getElementById('textInputSection');
+  const textInput        = document.getElementById('textInput');
+  const cardTitle        = document.getElementById('cardTitle');
+
+  modeVoiceBtn.addEventListener('click', () => {
+    if (modeVoiceBtn.classList.contains('active')) return;
+    modeVoiceBtn.classList.add('active');
+    modeTextBtn.classList.remove('active');
+    recordSection.style.display    = '';
+    textInputSection.style.display = 'none';
+    cardTitle.textContent = 'Transcrição';
+    showTranscript('');
+  });
+
+  modeTextBtn.addEventListener('click', () => {
+    if (modeTextBtn.classList.contains('active')) return;
+    modeTextBtn.classList.add('active');
+    modeVoiceBtn.classList.remove('active');
+    recordSection.style.display    = 'none';
+    textInputSection.style.display = '';
+    cardTitle.textContent = 'Nota digitada';
+    if (recording) recognition && recognition.stop();
+    showTranscript('');
+    setTimeout(() => textInput.focus(), 80);
+  });
+
+  document.getElementById('textSaveBtn').addEventListener('click', () => {
+    const text = textInput.value.trim();
+    if (!text) return;
+    textInput.value = '';
+    showTranscript(text);
+    textInput.focus();
+  });
+
+  textInput.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      document.getElementById('textSaveBtn').click();
+    }
+  });
 
   document.getElementById('reminderToggleBtn').addEventListener('click', () => {
     const btn       = document.getElementById('reminderToggleBtn');
@@ -1541,7 +1620,7 @@
   }
 
   /* ── Verificação automática de versão ── */
-  const APP_VERSION = 24;
+  const APP_VERSION = 25;
 
   async function checkForUpdate() {
     try {
