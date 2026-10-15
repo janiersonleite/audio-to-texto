@@ -70,15 +70,21 @@
       display: none;
       justify-content: space-between;
       align-items: center;
+      gap: 10px;
       padding: 12px 16px;
       background: #16213e;
       border-bottom: 1px solid #0f3460;
       flex-shrink: 0;
     }
     #selectionBar.visible { display: flex; }
-    #selCount { font-size: 15px; font-weight: 600; }
-    .sel-actions { display: flex; gap: 8px; align-items: center; }
-    .sel-btn { border: none; cursor: pointer; border-radius: 8px; padding: 7px 12px; font-size: 12px; font-weight: 600; }
+    #selCount { font-size: 15px; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+    .sel-actions {
+      display: flex; gap: 8px; align-items: center;
+      flex: 1; min-width: 0; overflow-x: auto;
+      -ms-overflow-style: none; scrollbar-width: none;
+    }
+    .sel-actions::-webkit-scrollbar { display: none; }
+    .sel-btn { border: none; cursor: pointer; border-radius: 8px; padding: 7px 12px; font-size: 12px; font-weight: 600; flex-shrink: 0; white-space: nowrap; }
     #selAllBtn      { background: #0f3460; color: #a0a8c0; }
     #catSelBtn      { background: #0f3460; color: #f59e0b; }
     #copySelBtn     { background: #0f3460; color: #6c63ff; }
@@ -470,12 +476,12 @@
 
     /* ══ LEMBRETE POR NOTA ══ */
     .note-reminder {
-      display: flex; align-items: center; gap: 8px;
+      display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
       margin-top: 10px; padding-top: 10px;
       border-top: 1px solid #1a2a4a;
     }
     .note-reminder-toggle {
-      display: flex; align-items: center; gap: 5px;
+      display: flex; align-items: center; gap: 5px; flex-shrink: 0;
       background: none; border: 1px solid #2a3a5e;
       border-radius: 20px; padding: 5px 12px;
       font-size: 12px; font-weight: 600; color: #6a7a9a;
@@ -485,7 +491,7 @@
       background: #1a1040; border-color: #6c63ff; color: #a78bfa;
     }
     .note-reminder-time {
-      flex: 1; padding: 6px 10px;
+      flex: 1 1 120px; min-width: 0; padding: 6px 10px;
       background: #0f3460; border: 1px solid #1a4a7a;
       border-radius: 8px; color: #e0e6f0; font-size: 13px;
       outline: none; font-family: inherit; display: none;
@@ -810,10 +816,10 @@
     } catch {}
   }
 
-  const BUILD_DATETIME = '19/08/2026 00:00';
+  const BUILD_DATETIME = '15/10/2026 00:00';
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v25 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v26 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
@@ -1620,7 +1626,7 @@
   }
 
   /* ── Verificação automática de versão ── */
-  const APP_VERSION = 25;
+  const APP_VERSION = 26;
 
   async function checkForUpdate() {
     try {
