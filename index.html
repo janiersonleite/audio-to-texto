@@ -819,16 +819,47 @@
 
     // Atualiza com dados do servidor quando online
     try {
-      const { data, error } = await sb
-        .from('user_data').select('items').eq('user_id', userId).maybeSingle();
+      let { data, error } = await sb
+        .from('user_data').select('items, categories').eq('user_id', userId).maybeSingle();
+      // Fallback caso a coluna 'categories' ainda não exista no banco
+      if (error && (error.code === 'PGRST204' || /categor/i.test(error.message || ''))) {
+        ({ data, error } = await sb
+          .from('user_data').select('items').eq('user_id', userId).maybeSingle());
+      }
       if (error) throw error;
+      if (data?.categories) mergeKnownCats(data.categories);
       if (data?.items) {
         transcripts = data.items;
         localStorage.setItem('h_items', JSON.stringify(transcripts));
+      }
+      if (data?.items || data?.categories) {
         renderHistory();
         updateBuildInfo();
       }
     } catch {}
+  }
+
+  // União das categorias conhecidas locais com as vindas do servidor
+  function mergeKnownCats(list) {
+    if (!Array.isArray(list)) return;
+    const set = knownCats();
+    let changed = false;
+    for (const c of list) {
+      const name = (typeof c === 'string' ? c : '').trim();
+      if (name && !set.includes(name)) { set.push(name); changed = true; }
+    }
+    if (changed) { try { localStorage.setItem('known_cats', JSON.stringify(set)); } catch {} }
+  }
+
+  // Upsert incluindo as categorias; se a coluna 'categories' ainda não
+  // existir, refaz sem ela para não bloquear o salvamento das notas.
+  async function upsertUserData() {
+    const base = { user_id: userId, items: transcripts, updated_at: new Date().toISOString() };
+    let res = await sb.from('user_data').upsert({ ...base, categories: getCategories() });
+    if (res.error && (res.error.code === 'PGRST204' || /categor/i.test(res.error.message || ''))) {
+      res = await sb.from('user_data').upsert(base);
+    }
+    return res;
   }
 
   async function saveTranscripts() {
@@ -844,9 +875,7 @@
     }
 
     try {
-      const { error } = await sb
-        .from('user_data')
-        .upsert({ user_id: userId, items: transcripts, updated_at: new Date().toISOString() });
+      const { error } = await upsertUserData();
       if (error) throw error;
       localStorage.removeItem('pending_sync');
     } catch {
@@ -858,9 +887,7 @@
   async function syncPending() {
     if (!userId || !navigator.onLine || !localStorage.getItem('pending_sync')) return;
     try {
-      const { error } = await sb
-        .from('user_data')
-        .upsert({ user_id: userId, items: transcripts, updated_at: new Date().toISOString() });
+      const { error } = await upsertUserData();
       if (!error) {
         localStorage.removeItem('pending_sync');
         showToast('Sincronizado ✓');
@@ -871,7 +898,7 @@
   const BUILD_DATETIME = '25/11/2026 00:00';
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v29 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v30 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
@@ -1091,6 +1118,7 @@
     addKnownCat(val);
     setRecorderCategory(val);
     renderCategoryFilter();   // reflete no filtro do histórico imediatamente
+    saveTranscripts();        // sincroniza a nova categoria entre dispositivos
   }
   document.getElementById('recNewCatBtn').addEventListener('click', addRecCategory);
   document.getElementById('recNewCatInput').addEventListener('keydown', e => {
@@ -1222,6 +1250,7 @@
     addKnownCat(val);
     renderEditCatChips();
     renderRecCatChips();   // mantém a tela de gravação sincronizada
+    saveTranscripts();     // sincroniza a nova categoria entre dispositivos
   });
 
   /* ── Renderizar histórico ── */
@@ -1768,7 +1797,7 @@
   }
 
   /* ── Verificação automática de versão ── */
-  const APP_VERSION = 29;
+  const APP_VERSION = 30;
 
   async function checkForUpdate() {
     try {
