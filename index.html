@@ -371,11 +371,9 @@
 
     /* ══ CATEGORIAS ══ */
     .cat-filter {
-      display: flex; gap: 8px; overflow-x: auto;
+      display: flex; flex-wrap: wrap; gap: 8px;
       padding-bottom: 10px; margin-bottom: 2px;
-      scrollbar-width: none;
     }
-    .cat-filter::-webkit-scrollbar { display: none; }
     .cat-chip {
       flex-shrink: 0; border: none; cursor: pointer;
       padding: 6px 14px; border-radius: 20px;
@@ -873,7 +871,7 @@
   const BUILD_DATETIME = '25/11/2026 00:00';
 
   function updateBuildInfo() {
-    document.getElementById('buildInfo').textContent = `v28 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
+    document.getElementById('buildInfo').textContent = `v29 · ${BUILD_DATETIME} · ${transcripts.length} salvo(s)`;
     histBadge.textContent = transcripts.length || '';
     const countEl = document.getElementById('histCount');
     if (countEl) countEl.textContent = transcripts.length
@@ -1090,7 +1088,9 @@
     const val = input.value.trim();
     if (!val) return;
     input.value = '';
+    addKnownCat(val);
     setRecorderCategory(val);
+    renderCategoryFilter();   // reflete no filtro do histórico imediatamente
   }
   document.getElementById('recNewCatBtn').addEventListener('click', addRecCategory);
   document.getElementById('recNewCatInput').addEventListener('keydown', e => {
@@ -1159,8 +1159,23 @@
     const [bg, color] = CAT_PALETTE[h % CAT_PALETTE.length];
     return `background:${bg};color:${color}`;
   }
+  // Lista persistente de categorias conhecidas (inclui as "vazias",
+  // criadas mas ainda sem nota), compartilhada entre gravação e histórico.
+  function knownCats() {
+    try { return JSON.parse(localStorage.getItem('known_cats') || '[]'); } catch { return []; }
+  }
+  function addKnownCat(name) {
+    name = (name || '').trim();
+    if (!name) return;
+    const set = knownCats();
+    if (!set.includes(name)) {
+      set.push(name);
+      try { localStorage.setItem('known_cats', JSON.stringify(set)); } catch {}
+    }
+  }
   function getCategories() {
-    return [...new Set(transcripts.map(t => t.category || 'Geral'))];
+    const fromNotes = transcripts.map(t => t.category || 'Geral');
+    return [...new Set([...knownCats(), ...fromNotes])];
   }
 
   let activeCategory  = 'Todas';
@@ -1204,7 +1219,9 @@
     if (!val) return;
     editingCategory = val;
     document.getElementById('newCatInput').value = '';
+    addKnownCat(val);
     renderEditCatChips();
+    renderRecCatChips();   // mantém a tela de gravação sincronizada
   });
 
   /* ── Renderizar histórico ── */
@@ -1565,6 +1582,7 @@
   }
 
   function applyBulkCat(cat) {
+    addKnownCat(cat);
     transcripts.forEach(t => { if (selectedIds.has(t.id)) t.category = cat; });
     saveTranscripts();
     renderHistory();
@@ -1750,7 +1768,7 @@
   }
 
   /* ── Verificação automática de versão ── */
-  const APP_VERSION = 28;
+  const APP_VERSION = 29;
 
   async function checkForUpdate() {
     try {
