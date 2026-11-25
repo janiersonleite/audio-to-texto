@@ -85,8 +85,21 @@ front-end). Para funcionar, o projeto Supabase precisa ter:
 - **Tabela `user_data`** com as colunas:
   - `user_id` (uuid, referência ao usuário autenticado)
   - `items` (jsonb) — lista de transcrições
+  - `categories` (jsonb) — lista de categorias do usuário, para que todas
+    (inclusive as ainda sem notas) sincronizem entre dispositivos
   - `updated_at` (timestamptz)
   - `telegram_chat_id` (text, opcional — para lembretes)
+
+  Para adicionar a coluna de categorias a um banco já existente, rode no
+  SQL Editor do Supabase:
+
+  ```sql
+  alter table public.user_data
+    add column if not exists categories jsonb default '[]'::jsonb;
+  ```
+
+  O app funciona mesmo sem essa coluna (as categorias ficam apenas locais);
+  com ela, passam a sincronizar entre dispositivos.
 - **Row Level Security (RLS)** ativado, com políticas que permitam a cada
   usuário ler/escrever apenas a própria linha (`auth.uid() = user_id`).
 - **Auth por e-mail/senha** habilitado.
